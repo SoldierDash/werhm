@@ -27,3 +27,13 @@
 *.i*86
 *.x86_64
 *.hex
+
+# CSS
+.metadata
+.launches
+.settings
+Debug
+targetConfigs
+
+dvt
+RemoteSystemsTempFiles
