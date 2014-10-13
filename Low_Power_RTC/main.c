@@ -36,7 +36,7 @@ void main() {
 	 /*
 	  * Clock config
 	  *		-/1 divider for ACLK
-	  *		-/1 divider for MCLK
+	  *		-/2 divider for MCLK + XT2CLK source
 	  *		-12.5pF cap for crystal
 	  *		-Source from crystal
 	  */
