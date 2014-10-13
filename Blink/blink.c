@@ -32,7 +32,7 @@ int main(void) {
 		P1OUT ^= 0x41;				// Toggle P1.0 using exclusive-OR
 
 
-		i = 10000;					// SW Delay
+		i = 100000;					// SW Delay
 		do i--;
 		while(i != 0);
 	}
