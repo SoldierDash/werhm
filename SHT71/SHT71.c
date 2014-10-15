@@ -14,12 +14,13 @@ float read_temperature(){
 	int raw_value;
 	float temperature;
 
-	const float D1 = -40.0;
-	const float D2 = 0.018;
+	//Constants defined in datasheet for raw data conversion at 3.5V supply
+	const float SHT_D1 = -39.7;
+	const float SHT_D2 = 0.018;
 
 	raw_value = read_temperature_raw();
 
-	temperature = (raw_value * D2) + D1;
+	temperature = (raw_value * SHT_D2) + SHT_D1;
 
 	return temperature;
 }
@@ -34,13 +35,21 @@ int read_temperature_raw(){
 
 	DATA_IN;
 
+	unsigned int i = 0;
+
 	while(DATA_READ){
-		_delay_cycles(10);
+
+		//Replace this code with a timeout
+		_delay_cycles(100);
+		i++;
+		if(i > 100000){
+			return 0;
+		}
 	}
 
 	out = read_two_bytes_SHT();
 
-	skipCrcSHT();
+	skip_crc_SHT();
 
 	return out;
 }
@@ -75,6 +84,7 @@ void send_SHT_command(int command){
 
 	SCL_LOW;
 	ack = DATA_READ;
+
 	if(ack == 0){
 		//ack error
 	}
@@ -131,7 +141,7 @@ unsigned char read_byte_SHT(){
 	return out;
 }
 
-void skipCrcSHT(){
+void skip_crc_SHT(){
 
 	DATA_OUT;
 	SCL_OUT;
@@ -141,7 +151,6 @@ void skipCrcSHT(){
 	SCL_LOW;
 
 }
-
 
 void SHT_data_in(){
 	P2DIR &= ~BIT0;
