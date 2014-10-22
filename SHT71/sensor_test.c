@@ -12,7 +12,7 @@
 void blink_red();
 void blink_green();
 
-volatile int read;
+volatile int read, measurement_count;
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -24,6 +24,7 @@ void main(void) {
     P1IFG &= ~BIT3;
 
     read = 0;
+    measurement_count = 0;
 
     volatile unsigned int temperature;
 
@@ -33,7 +34,12 @@ void main(void) {
 
 			temperature = read_temperature();
 			blink_green();
+			measurement_count++;
 			read = 0;
+		}
+		if(measurement_count >= 10){
+			measurement_count = 0;
+			blink_red();
 		}
 
 		_bis_SR_register(LPM4_bits + GIE);
