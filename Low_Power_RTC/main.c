@@ -23,13 +23,13 @@ void main() {
 
 	 /*
 	  * TimerA config
-	  * 	-Source from SMCLK
+	  * 	-Source from ACLK
 	  * 	-Up mode
 	  * 	-Compare at 32768 (1 second on crystal)
 	  * 	-Enable TimerA interrupt
 	  */
 	 TA0CCR0 = 32768;
-	 TA0CTL = TASSEL_2 + MC_1;
+	 TA0CTL = TASSEL_1 + MC_1;
 	 TA0CCTL0 |= CCIE;
 
 
@@ -42,7 +42,6 @@ void main() {
 	  */
 	 BCSCTL1 |= DIVA_0;
 	 BCSCTL2 |= DIVM_1 + SELM_2;
-	 BCSCTL2 &= ~SELS;
 	 BCSCTL3 |= XCAP_3 + LFXT1S_0;
 
 	 seconds = 0;

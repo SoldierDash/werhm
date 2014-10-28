@@ -11,7 +11,7 @@
 
 float read_temperature(){
 
-	float raw_value;
+	int raw_value;
 	float temperature;
 
 	//Constants defined in datasheet for raw data conversion at 3.5V supply
@@ -39,10 +39,10 @@ int read_temperature_raw(){
 
 	while(DATA_READ){
 
-		//Eventually replace this code with a timeout
+		//Replace this code with a timeout
 		_delay_cycles(100);
 		i++;
-		if(i > 40000){
+		if(i > 100000){
 			return 0;
 		}
 	}
@@ -101,6 +101,7 @@ void send_byte_SHT(int command){
 		SCL_HIGH;
 		SCL_LOW;
 	}
+
 }
 
 int read_two_bytes_SHT(){
@@ -123,6 +124,7 @@ int read_two_bytes_SHT(){
 	out |= read_byte_SHT();
 
 	return out;
+
 }
 
 unsigned char read_byte_SHT(){
@@ -147,9 +149,9 @@ void skip_crc_SHT(){
 	DATA_HIGH;
 	SCL_HIGH;
 	SCL_LOW;
+
 }
 
-//Set Data pin as input and enable internal pullup resistor
 void SHT_data_in(){
 	P2DIR &= ~BIT0;
 	P2REN |= BIT0;

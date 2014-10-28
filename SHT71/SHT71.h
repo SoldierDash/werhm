@@ -5,8 +5,8 @@
  *      Author: mdbalke
  */
 
-#ifndef _SHT71_H_
-#define _SHT71_H_
+#ifndef SHT71_H_
+#define SHT71_H_
 
 
 //Macros for data and clock lines
@@ -32,4 +32,6 @@ unsigned char read_byte_SHT();
 
 void SHT_data_in();
 
-#endif /* _SHT71_H_ */
+
+
+#endif /* SHT71_H_ */
