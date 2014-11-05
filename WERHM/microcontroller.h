@@ -10,25 +10,15 @@
 
 #define PRAGMA_VECTOR PORT1_VECTOR
 
-void disableWatchdog();
+void mcu_setup();
 
-void sleepMode();
+/* Sleep mode with interrupt wakeup */
+void mcu_sleep_gie();
 
-void setOutputPins(int pins);
+/* Wait for interrupt wakeup */
+void mcu_wait_gie();
 
-void setInputPins(int pins);
-
-/**
- * Enables interrupt on specified pins
- * Sets the flag for each pin to 0
- */
-void setInterruptPins(int pins);
-
-void clearInterruptPins(int pins);
-
-void setFrequency();
-
-void flashLED();
+void led_flash();
 
 
 #endif /* MICROCONTROLLER_H_ */

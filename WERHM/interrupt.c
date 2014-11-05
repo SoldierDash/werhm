@@ -11,10 +11,7 @@
 #pragma vector=PRAGMA_VECTOR
 __interrupt void Port_1_ISR(void) {
 
-	clearInterruptPins(0x08); //Clear P1.3
-
-
-	flashLED();
+	led_flash();
 
 	//_\bic_SR_register_on_exit(LPM4_bits);
 }

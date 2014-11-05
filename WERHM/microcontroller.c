@@ -12,14 +12,33 @@
 
 #define INTERRUPT_PRAGMA
 
-void disableWatchdog() {
-	/**
-	 * Stop watchdog timer
-	 */
+void
+mcu_setup() {
+	/* Stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
+
+	/**
+	 * Set frequency
+	 * 0.15Mhz
+	 */
+	BCSCTL1 &= ~(BIT3 + BIT2 + BIT1 + BIT0); //BCSCTL1 |= BIT1;
+	DCOCTL &= ~(BIT7 + BIT6 + BIT5); //DCOCTL |= BIT5 + BIT6;
+
+	/* Set pins for output */
+	P1DIR |= 0x41; // Enable P1.0 and P1.6
+
+	/* Set pins for input */
+	P1DIR &= ~0x00; // Enable none
+
+	/* Set interrupt pins */
+	P1IE |= 0x08; // Set P1.3 to interrupt
+
+	/* Clear interrupt pins */
+	P1IFG &= ~0x08;
 }
 
-void sleepMode() {
+void
+mcu_sleep_gie() {
 	/**
 	 * Set status register to sleep with interrupt
 	 *  LMP4_bits = Low power mode 4 (disable everything)
@@ -28,38 +47,17 @@ void sleepMode() {
 	_bis_SR_register(LPM4_bits + GIE);
 }
 
-void setOutputPins(int pins) {
-	P1DIR |= pins;
+void
+mcu_wait_gie() {
+	_bis_SR_register(LPM3_bits + GIE);
 }
 
-void setInputPins(int pins) {
-	P1DIR &= ~pins;
-}
-
-void setInterruptPins(int pins) {
-	P1IE |= pins;
-
-}
-
-void clearInterruptPins(int pins) {
-	P1IFG &= ~pins;
-}
-
-void setFrequency() {
-
-	/* <0.15Mhz */
-	BCSCTL1 &= ~(BIT3 + BIT2 + BIT1 + BIT0);
-	//BCSCTL1 |= BIT1;
-
-	DCOCTL &= ~(BIT7 + BIT6 + BIT5);
-	//DCOCTL |= BIT5 + BIT6;
-}
-
-void flashLED() {
+void
+led_flash() {
 	P1OUT ^= 0x01;
 
 	int j = 10;
-	for(;j != 0; j--) {
+	for (;j != 0; j--) {
 		volatile unsigned int i;	// volatile to prevent optimization
 		//volatile unsigned int j;
 
