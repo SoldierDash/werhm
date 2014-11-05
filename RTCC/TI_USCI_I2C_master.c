@@ -25,13 +25,11 @@
 // November 2007
 // Built with IAR Embedded Workbench Version: 3.42A
 //******************************************************************************
-//#include "msp430x26x.h"                        // device specific header
+#include "msp430g2553.h"                       // device specific header
 //#include "msp430x22x4.h"
 //#include "msp430x23x0.h"
 //#include "msp430xG46x.h"
 // ...                                         // more devices are possible
-
-#include "msp430g2553.h"
 
 #include "TI_USCI_I2C_master.h"
 
@@ -50,7 +48,8 @@ unsigned char *TI_transmit_field;
 //-----------------------------------------------------------------------------
 void TI_USCI_I2C_receiveinit(unsigned char slave_address, 
                              unsigned char prescale){
-  P3SEL |= SDA_PIN + SCL_PIN;                 // Assign I2C pins to USCI_B0
+  P1SEL |= SDA_PIN + SCL_PIN;                 // Assign I2C pins to USCI_B0
+  P1SEL2 |= SDA_PIN + SCL_PIN;
   UCB0CTL1 = UCSWRST;                        // Enable SW reset
   UCB0CTL0 = UCMST + UCMODE_3 + UCSYNC;       // I2C Master, synchronous mode
   UCB0CTL1 = UCSSEL_2 + UCSWRST;              // Use SMCLK, keep SW reset
@@ -73,7 +72,8 @@ void TI_USCI_I2C_receiveinit(unsigned char slave_address,
 //------------------------------------------------------------------------------
 void TI_USCI_I2C_transmitinit(unsigned char slave_address, 
                           unsigned char prescale){
-  P3SEL |= SDA_PIN + SCL_PIN;                 // Assign I2C pins to USCI_B0
+  P1SEL |= SDA_PIN + SCL_PIN;                 // Assign I2C pins to USCI_B0
+  P1SEL2 |= SDA_PIN + SCL_PIN;
   UCB0CTL1 = UCSWRST;                        // Enable SW reset
   UCB0CTL0 = UCMST + UCMODE_3 + UCSYNC;       // I2C Master, synchronous mode
   UCB0CTL1 = UCSSEL_2 + UCSWRST;              // Use SMCLK, keep SW reset

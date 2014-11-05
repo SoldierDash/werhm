@@ -21,30 +21,38 @@ unsigned char timercounter;
 unsigned char array[40] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb };
 unsigned char store[40] = { 13, 13, 13, 13, 13, 13, 13, 0, 0, 0};
 
+unsigned char RTC_addr = 0b1101111;
+volatile int slave_present = 0;
+unsigned char read_value = 96;
+
+unsigned char time_keeping[2] = {0x00, 0xFF};
+
 
 void main(void)
 {
   WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
 
-  BCSCTL1 = CALBC1_8MHZ; 					//Clk config
+  BCSCTL1 = CALBC1_8MHZ; 
   DCOCTL = CALDCO_8MHZ;
 
-  _EINT();									//Enable global interrupts
+  _EINT();
 
-  TI_USCI_I2C_transmitinit(0x50,0x12);  // init transmitting with USCI
-
+  TI_USCI_I2C_transmitinit(RTC_addr,0x12);  // init transmitting with USCI
   while ( TI_USCI_I2C_notready() );         // wait for bus to be free
-
-  if ( TI_USCI_I2C_slave_present(0x50) )    // slave address may differ from
+  if ( TI_USCI_I2C_slave_present(RTC_addr) )    // slave address may differ from
   {                                         // initialization
-    TI_USCI_I2C_receiveinit(0x50,0x12);   // init receiving with USCI 
+	slave_present = 1;
+
+    TI_USCI_I2C_transmitinit(RTC_addr,0x12);  // init transmitting with
     while ( TI_USCI_I2C_notready() );         // wait for bus to be free
-    TI_USCI_I2C_receive(4,store);
+    TI_USCI_I2C_transmit(2,time_keeping);       // start transmitting
+    while ( TI_USCI_I2C_notready() );
+
+    TI_USCI_I2C_receiveinit(RTC_addr,0x12);   // init receiving with USCI
     while ( TI_USCI_I2C_notready() );         // wait for bus to be free
-      
-    TI_USCI_I2C_transmitinit(0x50,0x12);  // init transmitting with 
+    TI_USCI_I2C_receive(1,&read_value);
     while ( TI_USCI_I2C_notready() );         // wait for bus to be free
-    TI_USCI_I2C_transmit(4,array);       // start transmitting 
+
   }
   
   LPM3;
