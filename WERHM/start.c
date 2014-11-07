@@ -1,9 +1,13 @@
 
 
+
+#include <msp430.h>
 #include "microcontroller.h"
-#include "spi.h"
 #include "interrupt.h"
-//#include <msp430.h>
+
+#define SLAVE_SPI
+
+#include "spi.h"
 
 void spi_rx(char);
 
@@ -18,6 +22,6 @@ int main(void) {
 void
 spi_rx(char rx) {
 	if(rx) {
-		P1OUT ^= BIT0;
+		P1OUT ^= 0x01;
 	}
 }

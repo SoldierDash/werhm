@@ -29,10 +29,19 @@ spi_setup(void (*spi_rx)(char)) {
 	 * USI Control Register 0
 	 * USIPEx: Enable SPI mode for pin 1.x
 	 * -Pin must be set to input
-	 * USIMST: Enable master mode
 	 * USIOE: USI Data output enable
 	 */
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIMST + USIOE; // Port, SPI master
+	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI master
+
+
+#ifdef SLAVE_SPI
+	/* Slave mode */
+	USICTL0 &= ~USIMST;
+
+#else
+
+	/* USIMST: Enable master mode */
+	USICTL0 |= USIMST;
 
 	/*
 	 * USI Clock Control Register
@@ -41,28 +50,35 @@ spi_setup(void (*spi_rx)(char)) {
 	 */
 	USICKCTL = USIDIV_4 + USISSEL_2;
 
+	//TODO need to intialize USIIFLG=1?
+#endif
+
+
+
 	/*
 	 * USISWRST: USI software reset (1->reset)
+	 * When high, stops operation of counter and shift register
 	 */
 	USICTL0 &= ~USISWRST;
 
+#ifdef SLAVE_SPI
 
+	// Slave ready to read one byte
+	USISRL = 0x00;
+	USICNT = 8;
 
-	// Reset for USIIFG, USISTTIFG, USISTP, USIAL
+	USICTL1 |= USIIE;
 
-	// SPI mode with USII2C = 0
-	// SPI master with USIMST master bit
-	// -> SCLK must be
-
-	// Activate USI port with corresponding USIPEx bits
-
-	// Get argument for function to handle data reciept
+	_bis_SR_register(GIE);
+#endif
 }
 
 void
 spi_tx(char data) {
+
+	//printf("Test");
 	// Disable interrupts
-	_bic_SR_register(GIE);
+	//_bic_SR_register(GIE);
 
 	_tx_sending = 1;
 
@@ -75,38 +91,40 @@ spi_tx(char data) {
 	/*
 	 * USI Count
 	 * USICNT: Number of bits to rx/tx
+	 * -Automatically clears USIIFG
+	 * -Sets USIIFG when USICNT=0
 	 */
 	USICNT = 8;
 
 	/*
 	 * USI Control Register 1
 	 * USIIE: USI counter interrupt enable
+	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
+	 * -When USIIFG=1 & USIIE=0, SCLK will hold
 	 */
 	USICTL1 |= USIIE;
 
-	//TODO Try sleeping to test for interrupt waiting
+	while(USICNT);
 
 	// Enable interrupts and sleep
-	_bis_SR_register(LPM0_bits + GIE);
+	//_bis_SR_register(LPM0_bits + GIE);
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
 
+#ifdef SLAVE_SPI
+	// Pass recived to handler
+	(*_spi_rx_handler)(USISRL);
+
+	// Ready to recieve another byte
+	USISRL = 0x00;
+	USICNT = 8;
+#else
 	// Disable SPI interrupt
 	USICTL1 &= ~USIIE;
+#endif
 
-	// If not waiting for tx reciept
-	if(!_tx_sending) {
-		// Pass recived to handler
-		(*_spi_rx_handler)(USISRL);
-	} else {
-		_tx_sending = 0;
-		// Switch off LPM0 mode
-		_bic_SR_register_on_exit(LPM0_bits);
-	}
+	_bic_SR_register_on_exit(LPM0_bits);
 }
-
-
-

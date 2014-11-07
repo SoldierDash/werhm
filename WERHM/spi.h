@@ -10,6 +10,8 @@
 
 void spi_setup(void (*spi_rx)(char));
 
+void spi_slave_setup();
+
 void spi_tx(char tx);
 
 #endif /* SPI_H_ */

@@ -30,7 +30,7 @@ mcu_setup() {
 	P1OUT = 0x00;
 
 	/* Set pins for input */
-	P1DIR &= ~0x00; // Enable none
+	P1DIR &= ~BIT3; // Enable none
 
 	/* Set interrupt pins */
 	P1IE |= BIT3; // Set P1.3 to interrupt
