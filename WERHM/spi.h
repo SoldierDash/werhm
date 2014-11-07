@@ -8,10 +8,8 @@
 #ifndef SPI_H_
 #define SPI_H_
 
-void spi_setup();
+void spi_setup(void (*spi_rx)(char));
 
-void spi_tx();
-
-void spi_rx();
+void spi_tx(char tx);
 
 #endif /* SPI_H_ */
