@@ -60,7 +60,7 @@ led_flash() {
 		volatile unsigned int i;	// volatile to prevent optimization
 		//volatile unsigned int j;
 
-		P1OUT ^= BIT1;				// Toggle P1.0 using exclusive-OR
+		P1OUT ^= BIT0;				// Toggle P1.0 using exclusive-OR
 
 
 		i = 5000;					// SW Delay
@@ -68,5 +68,5 @@ led_flash() {
 		while(i != 0);
 	}
 
-	P1OUT &= ~BIT1
+	P1OUT &= ~BIT0;
 }

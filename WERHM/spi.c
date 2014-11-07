@@ -14,10 +14,12 @@
 #include <msp430.h>
 
 void (*_spi_rx_handler)(char);
+char _tx_sending;
 
 void
 spi_setup(void (*spi_rx)(char)) {
 	_spi_rx_handler = spi_rx;
+	_tx_sending = 0;
 
 	/* Set P1.7(SDI) P1.6(SDO) and P1.5(SCLK) to input */
 	P1DIR &= ~(BIT7 + BIT6 + BIT5);
@@ -65,12 +67,17 @@ spi_setup(void (*spi_rx)(char)) {
 }
 
 void
-spi_tx(char tx) {
+spi_tx(char data) {
+	// Disable interrupts
+	__bic_SR_register(GIE);
+
+	_tx_sending = 1;
+
 	/*
 	 * USI Shift Register Low
 	 * -Lower 8 bits of shifted data
 	 */
-	USISRL = tx;
+	USISRL = data;
 
 	/*
 	 * USI Count
@@ -78,17 +85,24 @@ spi_tx(char tx) {
 	 */
 	USICNT = 8;
 
-	//Start waiting for an interrupt from USI_VECTOR
-}
+	//TODO Try sleeping to test for interrupt waiting
 
-char
-spi_rx() {
-	char data = USISR;
+	// Enable interrupts and sleep
+	__bis_SR_register(LPM0_bits + GIE);
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
+	// If not waiting for tx reciept
+	if(!_tx_sending) {
+		// Pass recived to handler
+		(*_spi_rx_handler)(USISRL);
+	} else {
+		_tx_sending = 0;
+		// Switch off LPM0 mode
+		__bic_SR_register_on_exit(LPM0_bits);
+	}
 
 }
 
