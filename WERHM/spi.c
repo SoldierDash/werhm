@@ -14,46 +14,35 @@
 #include <msp430.h>
 #include "microcontroller.h"
 
+#define SLAVE_SPI
+
+#if !(defined(SLAVE_SPI) || defined(MASTER_SPI))
+#error Define SPI mode MASTER_SPI or SLAVE_SPI
+#endif
+
 void (*_spi_rx_handler)(char);
-char _tx_sending;
 
 void
 spi_setup(void (*spi_rx)(char)) {
 	_spi_rx_handler = spi_rx;
-	_tx_sending = 0;
 
-	/* Set P1.7(SDI) P1.6(SDO) and P1.5(SCLK) to input */
-	//P1DIR &= ~(BIT7 + BIT6 + BIT5);
 
+#ifdef MASTER_SPI
 	/*
 	 * USI Control Register 0
 	 * USIPEx: Enable SPI mode for pin 1.x
 	 * -Pin must be set to input
 	 * USIOE: USI Data output enable
 	 */
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI master
-
-
-#ifdef SLAVE_SPI
-	/* Slave mode */
-	USICTL0 &= ~USIMST;
-
-#else
-
-	/* USIMST: Enable master mode */
-	USICTL0 |= USIMST;
+	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE + USIMST; // Port, SPI master
 
 	/*
 	 * USI Clock Control Register
 	 * USIDIV_x: Clock divider (2^x)
 	 * USISSEL_x: Clock source (1:ACLK, 2/3:SMCLK)
+	 * -Automatically SCLK if slave
 	 */
-	USICKCTL = USIDIV_4 + USISSEL_2;
-
-	//TODO need to intialize USIIFLG=1?
-#endif
-
-
+	USICKCTL = USIDIV_4 + USISSEL_2 + USICKPL;
 
 	/*
 	 * USISWRST: USI software reset (1->reset)
@@ -61,13 +50,19 @@ spi_setup(void (*spi_rx)(char)) {
 	 */
 	USICTL0 &= ~USISWRST;
 
-#ifdef SLAVE_SPI
+	//Set SDO low and remove extra bit errata
+	USISRL = 0x00;
+	USICNT = 1;
+#else
+	_bic_SR_register(GIE);
+
+	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
+	USICTL1 |= USIIE;
+	USICTL0 &= ~USISWRST;
 
 	// Slave ready to read one byte
 	USISRL = 0x00;
 	USICNT = 8;
-
-	USICTL1 |= USIIE;
 
 	_bis_SR_register(GIE);
 #endif
@@ -76,11 +71,6 @@ spi_setup(void (*spi_rx)(char)) {
 void
 spi_tx(char data) {
 
-	//printf("Test");
-	// Disable interrupts
-	//_bic_SR_register(GIE);
-
-	_tx_sending = 1;
 
 	/*
 	 * USI Shift Register Low
@@ -96,35 +86,25 @@ spi_tx(char data) {
 	 */
 	USICNT = 8;
 
-	/*
-	 * USI Control Register 1
-	 * USIIE: USI counter interrupt enable
-	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
-	 * -When USIIFG=1 & USIIE=0, SCLK will hold
-	 */
-	USICTL1 |= USIIE;
-
-	while(USICNT);
-
-	// Enable interrupts and sleep
-	//_bis_SR_register(LPM0_bits + GIE);
+	// Wait until IFG is set
+	while(!(USICTL1 & USIIFG));
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
 
-#ifdef SLAVE_SPI
 	// Pass recived to handler
 	(*_spi_rx_handler)(USISRL);
 
 	// Ready to recieve another byte
 	USISRL = 0x00;
 	USICNT = 8;
-#else
-	// Disable SPI interrupt
-	USICTL1 &= ~USIIE;
-#endif
-
-	_bic_SR_register_on_exit(LPM0_bits);
 }
+
+/* USICTL1 |= USIIE;
+ * USI Control Register 1
+ * USIIE: USI counter interrupt enable
+ * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
+ * -When USIIFG=1 & USIIE=0, SCLK will hold
+ */

@@ -5,8 +5,6 @@
 #include "microcontroller.h"
 #include "interrupt.h"
 
-#define SLAVE_SPI
-
 #include "spi.h"
 
 void spi_rx(char);
