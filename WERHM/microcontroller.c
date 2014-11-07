@@ -25,16 +25,21 @@ mcu_setup() {
 	DCOCTL &= ~(BIT7 + BIT6 + BIT5); //DCOCTL |= BIT5 + BIT6;
 
 	/* Set pins for output */
-	P1DIR |= 0x41; // Enable P1.0 and P1.6
+	P1DIR |= BIT0; // Enable P1.0
+
+	P1OUT = 0x00;
 
 	/* Set pins for input */
 	P1DIR &= ~0x00; // Enable none
 
 	/* Set interrupt pins */
-	P1IE |= 0x08; // Set P1.3 to interrupt
+	P1IE |= BIT3; // Set P1.3 to interrupt
 
 	/* Clear interrupt pins */
-	P1IFG &= ~0x08;
+	P1IFG &= ~BIT3;
+
+	/* Enable interrupt */
+	_bis_SR_register(GIE);
 }
 
 void
@@ -55,7 +60,7 @@ mcu_wait_gie() {
 void
 led_flash() {
 
-	int j = 10;
+	int j = 1;
 	for (;j != 0; j--) {
 		volatile unsigned int i;	// volatile to prevent optimization
 		//volatile unsigned int j;
@@ -68,5 +73,5 @@ led_flash() {
 		while(i != 0);
 	}
 
-	P1OUT &= ~BIT0;
+	//P1OUT &= ~0x01;
 }

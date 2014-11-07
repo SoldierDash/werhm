@@ -12,6 +12,7 @@
  */
 
 #include <msp430.h>
+#include "microcontroller.h"
 
 void (*_spi_rx_handler)(char);
 char _tx_sending;
@@ -22,7 +23,7 @@ spi_setup(void (*spi_rx)(char)) {
 	_tx_sending = 0;
 
 	/* Set P1.7(SDI) P1.6(SDO) and P1.5(SCLK) to input */
-	P1DIR &= ~(BIT7 + BIT6 + BIT5);
+	//P1DIR &= ~(BIT7 + BIT6 + BIT5);
 
 	/*
 	 * USI Control Register 0
@@ -32,12 +33,6 @@ spi_setup(void (*spi_rx)(char)) {
 	 * USIOE: USI Data output enable
 	 */
 	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIMST + USIOE; // Port, SPI master
-
-	/*
-	 * USI Control Register 1
-	 * USIIE: USI counter interrupt enable
-	 */
-	USICTL1 |= USIIE;
 
 	/*
 	 * USI Clock Control Register
@@ -60,8 +55,6 @@ spi_setup(void (*spi_rx)(char)) {
 	// -> SCLK must be
 
 	// Activate USI port with corresponding USIPEx bits
-	USICTL0;
-
 
 	// Get argument for function to handle data reciept
 }
@@ -69,7 +62,7 @@ spi_setup(void (*spi_rx)(char)) {
 void
 spi_tx(char data) {
 	// Disable interrupts
-	__bic_SR_register(GIE);
+	_bic_SR_register(GIE);
 
 	_tx_sending = 1;
 
@@ -85,15 +78,25 @@ spi_tx(char data) {
 	 */
 	USICNT = 8;
 
+	/*
+	 * USI Control Register 1
+	 * USIIE: USI counter interrupt enable
+	 */
+	USICTL1 |= USIIE;
+
 	//TODO Try sleeping to test for interrupt waiting
 
 	// Enable interrupts and sleep
-	__bis_SR_register(LPM0_bits + GIE);
+	_bis_SR_register(LPM0_bits + GIE);
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
+
+	// Disable SPI interrupt
+	USICTL1 &= ~USIIE;
+
 	// If not waiting for tx reciept
 	if(!_tx_sending) {
 		// Pass recived to handler
@@ -101,9 +104,8 @@ universal_serial_interface(void) {
 	} else {
 		_tx_sending = 0;
 		// Switch off LPM0 mode
-		__bic_SR_register_on_exit(LPM0_bits);
+		_bic_SR_register_on_exit(LPM0_bits);
 	}
-
 }
 
 
