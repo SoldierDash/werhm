@@ -14,12 +14,8 @@
 #include <msp430.h>
 #include "microcontroller.h"
 
-//#define MASTER_SPI
-#define SLAVE_SPI
-
-#if !(defined(SLAVE_SPI) || defined(MASTER_SPI))
-#error Define SPI mode MASTER_SPI or SLAVE_SPI
-#endif
+// Slave mode ifdef, else Master mode
+//#define SLAVE_SPI
 
 void (*_spi_rx_handler)(char);
 
@@ -28,7 +24,7 @@ spi_setup(void (*spi_rx)(char)) {
 	_spi_rx_handler = spi_rx;
 
 
-#ifdef MASTER_SPI
+#ifndef SLAVE_SPI
 	/*
 	 * USI Control Register 0
 	 * USIPEx: Enable SPI mode for pin 1.x
@@ -54,8 +50,9 @@ spi_setup(void (*spi_rx)(char)) {
 	//Set SDO low and remove extra bit errata
 	USISRL = 0x00;
 	USICNT = 1;
+
+	//TODO Reset slave devices
 #else
-	_bic_SR_register(GIE);
 
 	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
 
@@ -77,18 +74,14 @@ spi_setup(void (*spi_rx)(char)) {
 	 */
 	USICTL1 |= USIIE;
 
-
-
-	_bis_SR_register(GIE + LPM0_bits);
-
-
-
+	// Start waiting for input
+	_bis_SR_register(LPM0_bits + GIE);
 #endif
 }
 
-char
-spi_tx(char data) {
-
+void
+spi_tx_lpm_iu(char data) {
+	_bic_SR_register(GIE);
 
 	/*
 	 * USI Shift Register Low
@@ -105,27 +98,46 @@ spi_tx(char data) {
 	USICNT = 8;
 
 	// Wait until IFG is set
+	USICTL1 |= USIIE;
+
+	_bis_SR_register(LPM0_bits + GIE);
+}
+
+void
+spi_tx_am(char data) {
+	USISRL = data;
+
+	USICNT = 8;
+
+	// Wait until IFG is set
 	while(!(USICTL1 & USIIFG));
 
-	// Return shifted-in bits
-	return USISRL;
+	led_flash();
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
 
+#ifndef SLAVE_SPI
+	// Disable USI interrupt
+	USICTL1 &= ~USIIE;
 
 	led_flash();
 
-	// Pass recived to handler
 	//(*_spi_rx_handler)(USISRL);
+
+	// Wake from LPM0
+	_bic_SR_register_on_exit(LPM0_bits);
+
+#else
+	// Flash LED to indicate reciept
+	led_flash();
 
 	// Ready to recieve another byte
 	USISRL = 0x00;
 	USICNT = 8;
-
-	//_bic_SR_register_on_exit(LPM0);
+#endif
 }
 
 

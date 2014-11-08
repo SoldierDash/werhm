@@ -14,8 +14,8 @@ __interrupt void Port_1_ISR(void) {
 	char input = P1IN;
 
 	if(P1IFG & BIT3) {
-		P1OUT ^= BIT0;
-		spi_tx(0xAA);
+		//P1OUT ^= BIT0;
+		spi_tx_am(0xAA);
 
 		P1IFG &= ~BIT3;
 	}
