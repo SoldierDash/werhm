@@ -14,6 +14,7 @@
 #include <msp430.h>
 #include "microcontroller.h"
 
+//#define MASTER_SPI
 #define SLAVE_SPI
 
 #if !(defined(SLAVE_SPI) || defined(MASTER_SPI))
@@ -57,18 +58,35 @@ spi_setup(void (*spi_rx)(char)) {
 	_bic_SR_register(GIE);
 
 	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
-	USICTL1 |= USIIE;
+
+	USICKCTL |= USICKPL;
+
+
+
 	USICTL0 &= ~USISWRST;
 
 	// Slave ready to read one byte
 	USISRL = 0x00;
 	USICNT = 8;
 
-	_bis_SR_register(GIE);
+	/*
+	 * USI Control Register 1
+	 * USIIE: USI counter interrupt enable
+	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
+	 * -When USIIFG=1 & USIIE=0, SCLK will hold
+	 */
+	USICTL1 |= USIIE;
+
+
+
+	_bis_SR_register(GIE + LPM0_bits);
+
+
+
 #endif
 }
 
-void
+char
 spi_tx(char data) {
 
 
@@ -88,23 +106,26 @@ spi_tx(char data) {
 
 	// Wait until IFG is set
 	while(!(USICTL1 & USIIFG));
+
+	// Return shifted-in bits
+	return USISRL;
 }
 
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
 
+
+	led_flash();
+
 	// Pass recived to handler
-	(*_spi_rx_handler)(USISRL);
+	//(*_spi_rx_handler)(USISRL);
 
 	// Ready to recieve another byte
 	USISRL = 0x00;
 	USICNT = 8;
+
+	//_bic_SR_register_on_exit(LPM0);
 }
 
-/* USICTL1 |= USIIE;
- * USI Control Register 1
- * USIIE: USI counter interrupt enable
- * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
- * -When USIIFG=1 & USIIE=0, SCLK will hold
- */
+

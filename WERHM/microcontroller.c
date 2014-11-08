@@ -73,5 +73,6 @@ led_flash() {
 		while(i != 0);
 	}
 
-	//P1OUT &= ~0x01;
+
+	P1OUT &= ~BIT0;
 }

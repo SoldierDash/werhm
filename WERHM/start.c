@@ -19,7 +19,7 @@ int main(void) {
 
 void
 spi_rx(char rx) {
-	if(rx) {
+	if(rx == 0xAA) {
 		P1OUT ^= 0x01;
 	}
 }
