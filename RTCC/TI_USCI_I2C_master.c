@@ -1,35 +1,5 @@
-//******************************************************************************
-//   MSP430 USCI I2C Transmitter and Receiver
-//
-//  Description: This code configures the MSP430's USCI module as 
-//  I2C master capable of transmitting and receiving bytes. 
-//
-//  ***THIS IS THE MASTER CODE***
-//
-//                    Master                   
-//                 MSP430F2619             
-//             -----------------          
-//         /|\|              XIN|-   
-//          | |                 |     
-//          --|RST          XOUT|-    
-//            |                 |        
-//            |                 |        
-//            |                 |       
-//            |         SDA/P3.1|------->
-//            |         SCL/P3.2|------->
-//
-// Note: External pull-ups are needed for SDA & SCL
-//
-// Uli Kretzschmar
-// Texas Instruments Deutschland GmbH
-// November 2007
-// Built with IAR Embedded Workbench Version: 3.42A
-//******************************************************************************
+
 #include "msp430g2553.h"                       // device specific header
-//#include "msp430x22x4.h"
-//#include "msp430x23x0.h"
-//#include "msp430xG46x.h"
-// ...                                         // more devices are possible
 
 #include "TI_USCI_I2C_master.h"
 
