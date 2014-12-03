@@ -69,8 +69,9 @@ led_flash() {
 
 
 		i = 5000;					// SW Delay
-		do i--;
-		while(i != 0);
+		do {
+			i--;
+		} while(i != 0);
 	}
 
 

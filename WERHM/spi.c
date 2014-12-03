@@ -17,12 +17,10 @@
 // Slave mode ifdef, else Master mode
 //#define SLAVE_SPI
 
-void (*_spi_rx_handler)(char);
+volatile char interrupt_rx; // Temporary register for storing rx from spi_interrupt
 
 void
-spi_setup(void (*spi_rx)(char)) {
-	_spi_rx_handler = spi_rx;
-
+spi_setup() {
 
 #ifndef SLAVE_SPI
 	/*
@@ -101,9 +99,11 @@ spi_tx_lpm_iu(char data) {
 	USICTL1 |= USIIE;
 
 	_bis_SR_register(LPM0_bits + GIE);
+
+	return interrupt_rx;
 }
 
-void
+char
 spi_tx_am(char data) {
 	USISRL = data;
 
@@ -112,7 +112,7 @@ spi_tx_am(char data) {
 	// Wait until IFG is set
 	while(!(USICTL1 & USIIFG));
 
-	led_flash();
+	return USISRL;
 }
 
 #pragma vector=USI_VECTOR
@@ -123,9 +123,8 @@ universal_serial_interface(void) {
 	// Disable USI interrupt
 	USICTL1 &= ~USIIE;
 
-	led_flash();
-
-	//(*_spi_rx_handler)(USISRL);
+	// Store message
+	interrupt_rx = USISRL;
 
 	// Wake from LPM0
 	_bic_SR_register_on_exit(LPM0_bits);

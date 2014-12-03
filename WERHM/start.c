@@ -7,12 +7,10 @@
 
 #include "spi.h"
 
-void spi_rx(char);
-
 int main(void) {
 
 	mcu_setup();
-	spi_setup(spi_rx);
+	spi_setup();
 
 	while(1) {
 		volatile int i = 5000;
