@@ -16,13 +16,8 @@ int main(void) {
 		volatile int i = 5000;
 		while(i)
 			i--;
-		//spi_tx_lpm_iu(0xAA);
-	}
-}
-
-void
-spi_rx(char rx) {
-	if(rx == 0xAA) {
-		led_flash();
+		if(0xAA == spi_tx_lpm_iu(0xAA)) {
+			led_flash();
+		}
 	}
 }
