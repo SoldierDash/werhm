@@ -35,15 +35,73 @@ int main(void) {
 	P1OUT |= CS;
 	_delay_cycles(1000);
 
+	P1OUT &= ~CS;
+	spi_tx_am(CC_SRES);
+	P1OUT |= CS;
+
+	_delay_cycles(1000);
+
+	// RX
 
 
-	volatile unsigned int val1 = 10;
-	volatile unsigned int val2 = 10;
 
-	val1 = spi_tx_am(0b10000000);
-	val2 = spi_tx_am(0);
+	volatile unsigned char pkt_length = 0;
+	volatile unsigned char val1 = 0;
+	volatile unsigned char val2 = 0;
+	volatile unsigned char val3 = 0;
+
+
+
+	//Put device into RX mode
 
 	P1OUT &= ~CS;
+	spi_tx_am(CC_SRX);
+	P1OUT |= CS;
+
+	_delay_cycles(100000);
+
+	while(1){
+
+		P1OUT &= ~CS;
+		spi_tx_am(CC_RXBYTES);
+		val3 = spi_tx_am(0) & 0b01111111;
+		P1OUT |= CS;
+
+		//check there are bytes in buffer
+		if(val3 != 0){
+			P1OUT &= ~CS;
+			val1 = spi_tx_am(0xBF);
+			val2 = spi_tx_am(0);
+			P1OUT |= CS;
+			break;
+		}
+		_delay_cycles(1000);
+	}
+
+	P1OUT |= CS;
+
+	/* TX
+
+	volatile unsigned char val1 = 10;
+	volatile unsigned char val2[64];
+	volatile unsigned char val3;
+
+	P1OUT &= ~CS;
+	val1 = spi_tx_am(0x7f);
+	char i = 0;
+	for(i = 0; i < 64; i++)
+		val2[i] = spi_tx_am(i);
+	P1OUT |= CS;
+
+	_delay_cycles(1000);
+
+	P1OUT &= ~CS;
+
+	val3 = spi_tx_am(CC_STX);
+
+	P1OUT |= CS;
+
+*/
 
 
 	//Reset chip to restore default register values
@@ -83,5 +141,9 @@ void blink_green(){
 		_delay_cycles(40000);
 	}
 	P1OUT &= ~BIT6;
+}
+
+void blink_value(char val) {
+
 }
 

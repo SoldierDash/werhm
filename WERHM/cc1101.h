@@ -112,6 +112,4 @@ void cc1101_config();
 void cc1101_send_packet(unsigned char *data, int num_bytes);
 void cc1101_rcv_packet(unsigned char *data, int *num_bytes);
 
-void spi_transaction( unsigned char data_write[], int bytes, unsigned int *data_read) ;
-
 #endif /* CC_1101_H_ */
