@@ -23,6 +23,9 @@ void
 spi_setup() {
 
 #ifndef SLAVE_SPI
+
+	P1SEL |= BIT5 + BIT6 + BIT7;
+
 	/*
 	 * USI Control Register 0
 	 * USIPEx: Enable SPI mode for pin 1.x

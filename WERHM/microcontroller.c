@@ -21,8 +21,8 @@ mcu_setup() {
 	 * Set frequency
 	 * 0.15Mhz
 	 */
-	BCSCTL1 &= ~(BIT3 + BIT2 + BIT1 + BIT0); //BCSCTL1 |= BIT1;
-	DCOCTL &= ~(BIT7 + BIT6 + BIT5); //DCOCTL |= BIT5 + BIT6;
+	//BCSCTL1 &= ~(BIT3 + BIT2 + BIT1 + BIT0); //BCSCTL1 |= BIT1;
+	//DCOCTL &= ~(BIT7 + BIT6 + BIT5); //DCOCTL |= BIT5 + BIT6;
 
 	/* Set pins for output */
 	P1DIR |= BIT0; // Enable P1.0
@@ -30,13 +30,13 @@ mcu_setup() {
 	P1OUT = 0x00;
 
 	/* Set pins for input */
-	P1DIR &= ~BIT3; // Enable none
+	//P1DIR &= ~BIT3; // Enable none
 
 	/* Set interrupt pins */
-	P1IE |= BIT3; // Set P1.3 to interrupt
+	//P1IE |= BIT3; // Set P1.3 to interrupt
 
 	/* Clear interrupt pins */
-	P1IFG &= ~BIT3;
+	//P1IFG &= ~BIT3;
 
 	/* Enable interrupt */
 	_bis_SR_register(GIE);
