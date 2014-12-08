@@ -12,12 +12,11 @@
 
 //Definition for SPI lines on port 1
 #define CS BIT1
-#define MOSI BIT2
-#define MISO BIT3
-#define SCK BIT4
-#define MISO_READ (P1IN & MISO)
 #define GDO0 BIT2
-#define GDO0_READ (P1IN & GDO0)
+#define GDO2 BIT4
+
+#define MAX_RXFIFO 64
+#define MAX_TXFIFO 64
 
 // CC1101 SPI Header: (R/!W) + (Burst) + (A5-A0)
 #define CC_HEADER_RW	BIT7 // Read/!Write
@@ -124,8 +123,8 @@ unsigned char CC1101_burst_reg_write(unsigned char starting_address, unsigned ch
 unsigned char CC1101_reg_read(unsigned char address);
 unsigned char CC1101_strobe(unsigned char strobe);
 
-void cc1101_config();
+void cc1101_config(unsigned char device_address, unsigned char channel_number);
 void cc1101_send_packet(unsigned char *data, int num_bytes);
-void cc1101_rcv_packet(unsigned char *data, int *num_bytes);
+unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes);
 
 #endif /* CC_1101_H_ */

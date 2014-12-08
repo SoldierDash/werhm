@@ -23,7 +23,7 @@ int main(void) {
 
 	spi_setup();
 
-	cc1101_config();
+	cc1101_config(0x01, 0x00); // Device address 1, Channel number 0
 
 
 
@@ -33,9 +33,15 @@ int main(void) {
 
 	_delay_cycles(1000);
 
+	volatile unsigned char var[32];
+	var[0] = sizeof(var) - 1;
+	var[1] = 0x01;
+	int i;
+	for(i = 2; i < 32; i++)
+		var[i] = i - 1;
 
-	volatile unsigned char val1 = 0;
-	val1 = CC1101_reg_read(0x00);
+	cc1101_send_packet(var, sizeof(var));
+
 
 	/* RX
 
