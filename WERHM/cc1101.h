@@ -8,6 +8,8 @@
 #ifndef CC_1101_H_
 #define CC_1101_H_
 
+#define CC1101_MAX_FIFO 64
+
 //Definition for SPI lines on port 1
 #define CS BIT1
 #define MOSI BIT2
@@ -16,6 +18,20 @@
 #define MISO_READ (P1IN & MISO)
 #define GDO0 BIT2
 #define GDO0_READ (P1IN & GDO0)
+
+// CC1101 SPI Header: (R/!W) + (Burst) + (A5-A0)
+#define CC_HEADER_RW	BIT7 // Read/!Write
+#define CC_HEADER_BURST	BIT6 // Burst/!Single
+
+#define CC_STATUS_FIFO(x)	(x & 0b00001111)
+#define CC_STATUS_STATE(x)	(x & 0b01110000)
+
+/*
+ * Single TX FIFO	0x3F	0b00 111111
+ * Burst TX FIFO	0x7F	0b01 111111
+ * Single RX FIFO	0xBF	0b10 111111
+ * Burst RX FIFO	0xFF	0b11 111111
+ */
 
 // PATABLE (0 dBm output power)
 //char paTable[] = {0x51};

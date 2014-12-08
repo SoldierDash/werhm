@@ -6,56 +6,46 @@
  */
 
 #include <msp430.h>
-#include "cc1101.h"
 #include "spi.h"
+#include "cc1101.h"
 #include "microcontroller.h"
 
 
-void blink_red();
-void blink_green();
+
 
 
 int main(void) {
 
 
-	WDTCTL = WDTPW + WDTHOLD;
+	//WDTCTL = WDTPW + WDTHOLD; Handled in mcu_setup()
 
 	mcu_setup();
 
 	spi_setup();
 
+	cc1101_config();
 
 
-	//P1DIR |= BIT0 + BIT6;
-	//P1DIR |= (CS + MOSI + SCK);
-	//P1DIR &= ~(MISO + GDO0);
-	//P1DIR |= CS + BIT0;
-	P1DIR |= CS;
-
-	P1OUT |= CS;
-	_delay_cycles(1000);
-
-	P1OUT &= ~CS;
-	spi_tx_am(CC_SRES);
-	P1OUT |= CS;
 
 	_delay_cycles(1000);
 
-	// RX
+	CC1101_strobe(CC_SRES);
+
+	_delay_cycles(1000);
 
 
+	volatile unsigned char val1 = 0;
+	val1 = CC1101_reg_read(0x00);
+
+	/* RX
 
 	volatile unsigned char pkt_length = 0;
 	volatile unsigned char val1 = 0;
 	volatile unsigned char val2 = 0;
 	volatile unsigned char val3 = 0;
 
-
-
-	//Put device into RX mode
-
 	P1OUT &= ~CS;
-	spi_tx_am(CC_SRX);
+	spi_tx_am(CC_SRX); //RX mode
 	P1OUT |= CS;
 
 	_delay_cycles(100000);
@@ -70,8 +60,8 @@ int main(void) {
 		//check there are bytes in buffer
 		if(val3 != 0){
 			P1OUT &= ~CS;
-			val1 = spi_tx_am(0xBF);
-			val2 = spi_tx_am(0);
+			val1 = spi_tx(0xBF);
+			val2 = spi_tx(0);
 			P1OUT |= CS;
 			break;
 		}
@@ -80,17 +70,24 @@ int main(void) {
 
 	P1OUT |= CS;
 
+	*/
+
 	/* TX
 
 	volatile unsigned char val1 = 10;
 	volatile unsigned char val2[64];
 	volatile unsigned char val3;
+	volatile unsigned char val4;
+	volatile char i = 0;
 
 	P1OUT &= ~CS;
+
+	// Burst tx
 	val1 = spi_tx_am(0x7f);
-	char i = 0;
+
 	for(i = 0; i < 64; i++)
 		val2[i] = spi_tx_am(i);
+
 	P1OUT |= CS;
 
 	_delay_cycles(1000);
@@ -101,7 +98,15 @@ int main(void) {
 
 	P1OUT |= CS;
 
-*/
+	_delay_cycles(1000);
+
+	P1OUT &= ~CS;
+
+	val4 = spi_tx_am(CC_SNOP);
+
+	P1OUT |= CS;
+
+	*/
 
 
 	//Reset chip to restore default register values
@@ -125,25 +130,5 @@ int main(void) {
 }
 
 
-void blink_red(){
-	int i;
-	for(i = 5; i >= 0; i--){
-		P1OUT ^= BIT0;
-		_delay_cycles(40000);
-	}
-	P1OUT &= ~BIT0;
-}
 
-void blink_green(){
-	int i;
-	for(i = 5; i >= 0; i--){
-		P1OUT ^= BIT6;
-		_delay_cycles(40000);
-	}
-	P1OUT &= ~BIT6;
-}
-
-void blink_value(char val) {
-
-}
 

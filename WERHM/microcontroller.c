@@ -77,3 +77,21 @@ led_flash() {
 
 	P1OUT &= ~BIT0;
 }
+
+void blink_red(){
+	int i;
+	for(i = 5; i >= 0; i--){
+		P1OUT ^= BIT0;
+		_delay_cycles(40000);
+	}
+	P1OUT &= ~BIT0;
+}
+
+void blink_green(){
+	int i;
+	for(i = 5; i >= 0; i--){
+		P1OUT ^= BIT6;
+		_delay_cycles(40000);
+	}
+	P1OUT &= ~BIT6;
+}

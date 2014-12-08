@@ -15,7 +15,7 @@ __interrupt void Port_1_ISR(void) {
 
 	if(P1IFG & BIT3) {
 		//P1OUT ^= BIT0;
-		spi_tx_am(0xAA);
+		spi_tx(0xAA);
 
 		P1IFG &= ~BIT3;
 	}

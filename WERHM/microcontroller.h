@@ -18,7 +18,10 @@ void mcu_sleep_gie();
 /* Wait for interrupt wakeup */
 void mcu_wait_gie();
 
+/* LED debugers, uses LaunchPad pins Red == P1.0 and Green == P1.6 */
 void led_flash();
+void blink_red();
+void blink_green();
 
 
 #endif /* MICROCONTROLLER_H_ */

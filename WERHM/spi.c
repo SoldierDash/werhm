@@ -13,18 +13,14 @@
 
 #include <msp430.h>
 #include "microcontroller.h"
+#include "spi.h"
 
-// Slave mode ifdef, else Master mode
-//#define SLAVE_SPI
-
-volatile char interrupt_rx; // Temporary register for storing rx from spi_interrupt
+volatile unsigned char interrupt_rx; // Temporary register for storing rx from spi_interrupt
 
 void
 spi_setup() {
 
-#ifndef SLAVE_SPI
-
-	P1SEL |= BIT5 + BIT6 + BIT7;
+	P1SEL |= P1USI_SCLK + P1USI_SO + P1USI_SI;
 
 	/*
 	 * USI Control Register 0
@@ -52,36 +48,9 @@ spi_setup() {
 	USISRL = 0x00;
 	USICNT = 1;
 
-	//TODO Reset slave devices
-#else
-
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
-
-	USICKCTL |= USICKPL;
-
-
-
-	USICTL0 &= ~USISWRST;
-
-	// Slave ready to read one byte
-	USISRL = 0x00;
-	USICNT = 8;
-
-	/*
-	 * USI Control Register 1
-	 * USIIE: USI counter interrupt enable
-	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
-	 * -When USIIFG=1 & USIIE=0, SCLK will hold
-	 */
-	USICTL1 |= USIIE;
-
-	// Start waiting for input
-	_bis_SR_register(LPM0_bits + GIE);
-#endif
 }
 
-void
-spi_tx_lpm_iu(char data) {
+unsigned char spi_tx_lpm(unsigned char data) {
 	_bic_SR_register(GIE);
 
 	/*
@@ -106,8 +75,7 @@ spi_tx_lpm_iu(char data) {
 	return interrupt_rx;
 }
 
-char
-spi_tx_am(char data) {
+unsigned char spi_tx(unsigned char data) {
 	USISRL = data;
 
 	USICNT = 8;
@@ -121,8 +89,6 @@ spi_tx_am(char data) {
 #pragma vector=USI_VECTOR
 __interrupt void
 universal_serial_interface(void) {
-
-#ifndef SLAVE_SPI
 	// Disable USI interrupt
 	USICTL1 &= ~USIIE;
 
@@ -131,15 +97,6 @@ universal_serial_interface(void) {
 
 	// Wake from LPM0
 	_bic_SR_register_on_exit(LPM0_bits);
-
-#else
-	// Flash LED to indicate reciept
-	led_flash();
-
-	// Ready to recieve another byte
-	USISRL = 0x00;
-	USICNT = 8;
-#endif
 }
 
 
