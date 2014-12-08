@@ -127,4 +127,6 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number);
 void cc1101_send_packet(unsigned char *data, int num_bytes);
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes);
 
+void cc1101_rx_sleep();
+
 #endif /* CC_1101_H_ */

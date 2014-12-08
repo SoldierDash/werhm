@@ -9,6 +9,7 @@
 
 #include <msp430.h>
 #include "microcontroller.h"
+#include "cc1101.h"
 
 #define INTERRUPT_PRAGMA
 
@@ -37,6 +38,8 @@ mcu_setup() {
 
 	/* Clear interrupt pins */
 	//P1IFG &= ~BIT3;
+
+	rx_flag = 0;
 
 	/* Enable interrupt */
 	_bis_SR_register(GIE);
@@ -95,3 +98,16 @@ void blink_green(){
 	}
 	P1OUT &= ~BIT6;
 }
+
+#pragma vector=PORT1_VECTOR
+__interrupt void Port_1_ISR(void){
+
+	if(P1IFG & GDO2){
+		P1IFG &= ~GDO2;
+		P1IE &= ~GDO2;
+		rx_flag = 1;
+	}
+
+	_bic_SR_register_on_exit(LPM0_bits);
+}
+

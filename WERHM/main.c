@@ -27,12 +27,21 @@ int main(void) {
 
 
 
-	_delay_cycles(1000);
+	volatile unsigned char var2[64];
+	volatile unsigned char var2_size;
 
-	CC1101_strobe(CC_SRES);
+	int i;
+	for(i = 0; i < 64; i++){
+		var2[i] = 0;
+	}
 
-	_delay_cycles(1000);
+	cc1101_rcv_packet(var2, &var2_size);
+	cc1101_rcv_packet(var2, &var2_size);
 
+	cc1101_rx_sleep();
+
+
+	/* TX
 	volatile unsigned char var[32];
 	var[0] = sizeof(var) - 1;
 	var[1] = 0x01;
@@ -41,76 +50,6 @@ int main(void) {
 		var[i] = i - 1;
 
 	cc1101_send_packet(var, sizeof(var));
-
-
-	/* RX
-
-	volatile unsigned char pkt_length = 0;
-	volatile unsigned char val1 = 0;
-	volatile unsigned char val2 = 0;
-	volatile unsigned char val3 = 0;
-
-	P1OUT &= ~CS;
-	spi_tx_am(CC_SRX); //RX mode
-	P1OUT |= CS;
-
-	_delay_cycles(100000);
-
-	while(1){
-
-		P1OUT &= ~CS;
-		spi_tx_am(CC_RXBYTES);
-		val3 = spi_tx_am(0) & 0b01111111;
-		P1OUT |= CS;
-
-		//check there are bytes in buffer
-		if(val3 != 0){
-			P1OUT &= ~CS;
-			val1 = spi_tx(0xBF);
-			val2 = spi_tx(0);
-			P1OUT |= CS;
-			break;
-		}
-		_delay_cycles(1000);
-	}
-
-	P1OUT |= CS;
-
-	*/
-
-	/* TX
-
-	volatile unsigned char val1 = 10;
-	volatile unsigned char val2[64];
-	volatile unsigned char val3;
-	volatile unsigned char val4;
-	volatile char i = 0;
-
-	P1OUT &= ~CS;
-
-	// Burst tx
-	val1 = spi_tx_am(0x7f);
-
-	for(i = 0; i < 64; i++)
-		val2[i] = spi_tx_am(i);
-
-	P1OUT |= CS;
-
-	_delay_cycles(1000);
-
-	P1OUT &= ~CS;
-
-	val3 = spi_tx_am(CC_STX);
-
-	P1OUT |= CS;
-
-	_delay_cycles(1000);
-
-	P1OUT &= ~CS;
-
-	val4 = spi_tx_am(CC_SNOP);
-
-	P1OUT |= CS;
 
 	*/
 

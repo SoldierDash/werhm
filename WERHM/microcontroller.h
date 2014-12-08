@@ -10,6 +10,8 @@
 
 #define PRAGMA_VECTOR PORT1_VECTOR
 
+volatile unsigned char rx_flag;
+
 void mcu_setup();
 
 /* Sleep mode with interrupt wakeup */
