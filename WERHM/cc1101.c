@@ -158,6 +158,12 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	while (P1IN & GDO0);
 }
 
+/*
+ * Reads buffer from RX_FIFO after checking that there is data to be read
+ *
+ * return: 0xFF if RX_FIFO overflow
+ * 		   0 if data was read from buffer
+ */
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 
 	rx_flag = 0;
@@ -168,7 +174,7 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 		*num_bytes = 0;
 		return 0xFF;
 	} else {
-		CC1101_burst_reg_read(0x3F, data, *num_bytes);
+		CC1101_burst_reg_read(0xFF, data, *num_bytes);
 		return 0x00;
 	}
 }

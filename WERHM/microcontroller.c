@@ -13,8 +13,7 @@
 
 #define INTERRUPT_PRAGMA
 
-void
-mcu_setup() {
+void mcu_setup() {
 	/* Stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
 
@@ -45,8 +44,7 @@ mcu_setup() {
 	_bis_SR_register(GIE);
 }
 
-void
-mcu_sleep_gie() {
+void mcu_sleep_gie() {
 	/**
 	 * Set status register to sleep with interrupt
 	 *  LMP4_bits = Low power mode 4 (disable everything)
@@ -55,13 +53,11 @@ mcu_sleep_gie() {
 	_bis_SR_register(LPM4_bits + GIE);
 }
 
-void
-mcu_wait_gie() {
+void mcu_wait_gie() {
 	_bis_SR_register(LPM3_bits + GIE);
 }
 
-void
-led_flash() {
+void led_flash() {
 
 	int j = 1;
 	for (;j != 0; j--) {
@@ -99,15 +95,5 @@ void blink_green(){
 	P1OUT &= ~BIT6;
 }
 
-#pragma vector=PORT1_VECTOR
-__interrupt void Port_1_ISR(void){
 
-	if(P1IFG & GDO2){
-		P1IFG &= ~GDO2;
-		P1IE &= ~GDO2;
-		rx_flag = 1;
-	}
-
-	_bic_SR_register_on_exit(LPM0_bits);
-}
 

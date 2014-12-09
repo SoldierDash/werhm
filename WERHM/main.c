@@ -35,10 +35,13 @@ int main(void) {
 		var2[i] = 0;
 	}
 
-	cc1101_rcv_packet(var2, &var2_size);
-	cc1101_rcv_packet(var2, &var2_size);
+	//cc1101_rcv_packet(var2, &var2_size);
+	//cc1101_rcv_packet(var2, &var2_size);
 
-	cc1101_rx_sleep();
+	// Wait for GDO2 to go high indicating RX buffer exceeds threshold
+	while(P1IN & GDO2);
+
+	cc1101_rcv_packet(var2, &var2_size);
 
 
 	/* TX
