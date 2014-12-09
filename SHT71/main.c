@@ -1,27 +1,21 @@
 
 #include <msp430.h> 
-
-#define SDA_PIN BIT4
-#define SCL_PIN BIT5
-
+#include "SHT71.h"
 
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
 	
-    P1DIR |= (BIT0 + BIT6);
+    P1DIR |= (BIT0 + BIT6 + BIT7);
     P1OUT &= ~(BIT0 + BIT6);
 
-    volatile float temperature;
-    volatile float humidity;
+    P1OUT |= BIT7;
+
 
 	while(1){
 
-		//humidity = read_humidity();
-
-		temperature = read_temperature();
-
-		//blink_red();
+		read_humidity();
+		read_temperature();
 
 		blink_green();
 

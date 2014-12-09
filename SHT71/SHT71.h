@@ -8,6 +8,9 @@
 #ifndef _SHT71_H_
 #define _SHT71_H_
 
+volatile float global_temperature;
+volatile float global_humidity;
+
 #define SDA_PIN BIT4
 #define SCL_PIN BIT5
 
@@ -36,19 +39,5 @@ unsigned char read_byte_SHT();
 void SHT_data_in();
 void blink_red();
 void blink_green();
-
-
-
-/*
-float read_temperature();
-int read_temperature_raw();
-void send_SHT_command(int command);
-int read_two_bytes_SHT();
-void skip_crc_SHT();
-void send_byte_SHT(int command);
-unsigned char read_byte_SHT();
-
-void SHT_data_in();
-*/
 
 #endif /* _SHT71_H_ */

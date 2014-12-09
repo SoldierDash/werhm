@@ -28,7 +28,9 @@ float read_humidity(){
 
 	linear_value = C1 + C2 * raw_humidity + C3 * raw_humidity * raw_humidity;
 
-	return linear_value;
+	global_humidity = linear_value;
+	return 0;
+	//return linear_value;
 }
 
 float read_humidity_raw(){
@@ -64,7 +66,10 @@ float read_temperature(){
 
 	temperature = (raw_value * D2) + D1;
 
-	return temperature;
+	global_temperature = temperature;
+	return 0;
+
+	//return temperature;
 }
 
 int read_temperature_raw(){

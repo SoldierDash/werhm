@@ -5,7 +5,7 @@
  *      Author: mdbalke
  */
 
-
+/*
 #include <msp430.h> 
 #include "SHT71.h"
 
@@ -74,3 +74,4 @@ void blink_green(){
 	}
 	P1OUT &= ~BIT6;
 }
+*/
