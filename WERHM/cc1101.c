@@ -135,7 +135,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST2, 0x88); // Various test settings.
 	CC1101_reg_write(CC_TEST1, 0x31); // Various test settings.
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
-	CC1101_reg_write(CC_FIFOTHR, 0x00); // RX/TX FIFO capacity trigger		// 0x00 == 4bits
+	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
 	//TODO Device checking
 
 	CC1101_strobe(CC_SFRX);
@@ -154,8 +154,10 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
 
-	while (!(P1IN & GDO0));
-	while (P1IN & GDO0);
+	while (!(P1IN & GDO0))
+		;
+	while (P1IN & GDO0)
+		;
 }
 
 /*
@@ -166,32 +168,51 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
  */
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 
-	rx_flag = 0;
+	unsigned char status[2];
+	char pktLen;
 
-	*num_bytes = CC1101_reg_read(CC_RXBYTES & CC_NUM_RXBYTES);
-	if (*num_bytes > MAX_RXFIFO) { // Overflowed
-		CC1101_strobe(CC_SFRX); // Clear RXFIFO
-		*num_bytes = 0;
+	if ((CC1101_read_status_register(CC_RXBYTES) & CC_NUM_RXBYTES) != 0) {
+		pktLen = CC1101_reg_read(0xBF); // Read length byte
+		*num_bytes = (CC1101_read_status_register(CC_RXBYTES) & CC_NUM_RXBYTES);
+
+		if (pktLen <= *num_bytes) {
+			CC1101_burst_reg_read(0xFF, data, pktLen); // Pull data
+
+			// Read appended status bytes
+			CC1101_burst_reg_read(0xFF, status, 2);
+
+			//return CRC check
+			return (char) (status[1] & 0x08);
+			//return 0;
+		}else {
+			// Return the large size
+			*num_bytes = pktLen;
+
+			// Flush RXFIFO
+			CC1101_strobe(CC_SFRX);
+
+			// Error
+			return 0xFF;
+		}
+	} else
+		// Error
 		return 0xFF;
-	} else {
-		CC1101_burst_reg_read(0xFF, data, *num_bytes);
-		return 0x00;
-	}
 }
 
-void cc1101_rx_sleep() {
+unsigned char CC1101_read_status_register(unsigned char address) {
 
-	CC1101_strobe(CC_SFRX);
+	unsigned char header = address | CC_HEADER_RW | CC_HEADER_BURST;
 
-	P1IE |= GDO2;
-	P1IFG &= ~GDO2;
+	volatile unsigned char data;
 
-	P1IES &= ~GDO2;
-	CC1101_strobe(CC_SRX);
+	CS_ENABLE;
 
-	while (rx_flag == 0)
-		;
+	spi_tx(header);
+	data = spi_tx(0x00);
 
-	//_bis_SR_register(LPM0_bits + GIE);
+	CS_DISABLE;
+
+	return data;
+
 }
 

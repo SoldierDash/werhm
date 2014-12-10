@@ -10,9 +10,7 @@
 #include "cc1101.h"
 #include "microcontroller.h"
 
-
-
-
+#define TX_RX 0
 
 int main(void) {
 
@@ -25,52 +23,52 @@ int main(void) {
 
 	cc1101_config(0x01, 0x00); // Device address 1, Channel number 0
 
+	volatile unsigned char rx[64];
 
+	if(TX_RX){
+		//Continuously send packets
+		unsigned char var[32];
+		var[0] = sizeof(var) - 1;
+		var[1] = 0x01;
+		int i, j;
+		j = 0;
 
-	volatile unsigned char var2[64];
-	volatile unsigned char var2_size;
+		for(i = 2; i < 32; i++){
+			var[i] = i - 1;
+		}
 
-	int i;
-	for(i = 0; i < 64; i++){
-		var2[i] = 0;
+		while(1){
+
+			cc1101_send_packet(var, sizeof(var));
+			blink_red();
+			_delay_cycles(1500000);
+		}
+	}else{
+		//Receive packet
+
+		volatile int rx_size;
+		volatile unsigned char status;
+
+		int i;
+		for(i = 0; i < 64; i++){
+			rx[i] = 0;
+		}
+
+		status = CC1101_strobe(CC_SFRX);
+		status = CC1101_strobe(CC_SRX);
+
+		// Wait for GDO2 to go high indicating RX buffer exceeds threshold
+		while(1){
+			while(!(P1IN & GDO2));
+
+			status = cc1101_rcv_packet(rx, &rx_size);
+
+			blink_red();
+
+			//status = CC1101_strobe(CC_SFRX);
+			CC1101_strobe(CC_SRX);
+		}
 	}
-
-	//cc1101_rcv_packet(var2, &var2_size);
-	//cc1101_rcv_packet(var2, &var2_size);
-
-	// Wait for GDO2 to go high indicating RX buffer exceeds threshold
-	while(P1IN & GDO2);
-
-	cc1101_rcv_packet(var2, &var2_size);
-
-
-	/* TX
-	volatile unsigned char var[32];
-	var[0] = sizeof(var) - 1;
-	var[1] = 0x01;
-	int i;
-	for(i = 2; i < 32; i++)
-		var[i] = i - 1;
-
-	cc1101_send_packet(var, sizeof(var));
-
-	*/
-
-
-	//Reset chip to restore default register values
-	//CC1101_strobe(CC_SRES);
-
-	//cc1101_config();
-
-	//blink_red();
-
-	//unsigned char packet[3];
-
-	//packet[0] = 0x02;
-	//packet[1] = 0x05;
-	//packet[2] = 0x03;
-
-	//cc1101_send_packet(packet, 3);
 
 	blink_red();
 
