@@ -128,6 +128,9 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number);
 void cc1101_send_packet(unsigned char *data, int num_bytes);
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes);
 
+unsigned char CC1101_sleep_wake_on_radio();
+
+
 unsigned char CC1101_burst_reg_read(unsigned char starting_address, unsigned char *data, int num_bytes);
 
 #endif /* CC_1101_H_ */

@@ -136,8 +136,9 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST1, 0x31); // Various test settings.
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
 	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
-	//TODO Device checking
 
+
+	//TODO Device checking
 	CC1101_strobe(CC_SFRX);
 
 }
@@ -154,10 +155,8 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
 
-	while (!(P1IN & GDO0))
-		;
-	while (P1IN & GDO0)
-		;
+	while (!(P1IN & GDO0));
+	while (P1IN & GDO0);
 }
 
 /*
@@ -199,6 +198,20 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 		return 0xFF;
 }
 
+/*
+ * Send CC1101 into sleep mode with wake-on-radio enabled
+ */
+unsigned char CC1101_sleep_wake_on_radio(){
+
+	//Init WOR
+
+	//Start WOR
+}
+
+/*
+ * Reads the value of a read-only status register
+ *
+ */
 unsigned char CC1101_read_status_register(unsigned char address) {
 
 	unsigned char header = address | CC_HEADER_RW | CC_HEADER_BURST;

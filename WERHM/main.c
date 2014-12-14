@@ -10,7 +10,7 @@
 #include "cc1101.h"
 #include "microcontroller.h"
 
-#define TX_RX 0
+#define TX_RX 1
 
 int main(void) {
 
@@ -26,12 +26,12 @@ int main(void) {
 	volatile unsigned char rx[64];
 
 	if(TX_RX){
+
 		//Continuously send packets
 		unsigned char var[32];
 		var[0] = sizeof(var) - 1;
 		var[1] = 0x01;
-		int i, j;
-		j = 0;
+		int i;
 
 		for(i = 2; i < 32; i++){
 			var[i] = i - 1;
@@ -44,9 +44,9 @@ int main(void) {
 			_delay_cycles(1500000);
 		}
 	}else{
-		//Receive packet
 
-		volatile int rx_size;
+		//Receive packet
+		volatile int rx_size = 0;
 		volatile unsigned char status;
 
 		int i;
@@ -61,6 +61,7 @@ int main(void) {
 		while(1){
 			while(!(P1IN & GDO2));
 
+			rx_size = 0;
 			status = cc1101_rcv_packet(rx, &rx_size);
 
 			blink_red();
