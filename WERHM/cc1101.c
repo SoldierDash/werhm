@@ -115,7 +115,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_MDMCFG4, 0x2D); // Modem configuration.
 	CC1101_reg_write(CC_MDMCFG3, 0x3B); // Modem configuration.
 	CC1101_reg_write(CC_MDMCFG2, 0x73); // Modem configuration.
-	CC1101_reg_write(CC_MDMCFG1, 0x22); // Modem configuration.
+	CC1101_reg_write(CC_MDMCFG1, 0x72); // Modem configuration.		//Changed to transmit maximum number of preamble bytes
 	CC1101_reg_write(CC_MDMCFG0, 0xF8); // Modem configuration.
 	CC1101_reg_write(CC_DEVIATN, 0x00); // Modem dev (when FSK mod en)
 	CC1101_reg_write(CC_MCSM1, 0x3F); // MainRadio Cntrl State Machine
