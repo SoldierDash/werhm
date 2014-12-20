@@ -64,10 +64,7 @@ int main(void) {
 			rx_size = 0;
 			status = cc1101_rcv_packet(rx, &rx_size);
 
-			if(status == 0)
-				blink_red();
-			else
-				blink_green();
+			blink_red();
 
 			//status = CC1101_strobe(CC_SFRX);
 			CC1101_strobe(CC_SRX);

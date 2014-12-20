@@ -181,7 +181,7 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 			CC1101_burst_reg_read(0xFF, status, 2);
 
 			//return CRC check
-			return (unsigned char) (status[1] & 0x08);
+			return (char) (status[1] & 0x08);
 			//return 0;
 		}else {
 			// Return the large size
