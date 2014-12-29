@@ -118,6 +118,8 @@
 #define CC_SNOP         0x3D        // No operation.
 
 
+
+
 unsigned char CC1101_reg_write(unsigned char address, unsigned char data);
 unsigned char CC1101_burst_reg_write(unsigned char starting_address, unsigned char *data, int num_bytes);
 unsigned char CC1101_reg_read(unsigned char address);

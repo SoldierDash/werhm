@@ -10,7 +10,7 @@
 #include "cc1101.h"
 #include "microcontroller.h"
 
-#define TX_RX 1
+#define TX_RX 0
 
 int main(void) {
 
@@ -23,7 +23,10 @@ int main(void) {
 
 	cc1101_config(0x01, 0x00); // Device address 1, Channel number 0
 
-	volatile unsigned char rx[64];
+	unsigned char rx[64];
+
+	volatile int rx_packets;
+	volatile int CRC_pass;
 
 	if(TX_RX){
 
@@ -46,8 +49,11 @@ int main(void) {
 	}else{
 
 		//Receive packet
-		volatile int rx_size = 0;
-		volatile unsigned char status;
+		int rx_size = 0;
+		unsigned char status;
+
+		rx_packets = 0;
+		CRC_pass = 0;
 
 		int i;
 		for(i = 0; i < 64; i++){
@@ -63,17 +69,37 @@ int main(void) {
 
 			rx_size = 0;
 			status = cc1101_rcv_packet(rx, &rx_size);
+			rx_packets++;
 
-			blink_red();
+			/*
+			status = CC1101_read_status_register(0x33);
+
+			if((status & 0x80) != 0){
+				blink_green();
+			}else{
+				blink_red();
+			}
+			*/
+
+			//Check CRC-OK bit
+			if(status == 0){
+				//CRC pass
+				CRC_pass++;
+				blink_green();
+			}else{
+				//Packet received but CRC failed
+				blink_red();
+			}
+			//CRC_percent = (float) (CRC_pass / rx_packets) * 100;
 
 			//status = CC1101_strobe(CC_SFRX);
 			CC1101_strobe(CC_SRX);
 		}
 	}
 
-	blink_red();
+	//blink_red();
 
-	while(1);
+	//while(1);
 }
 
 

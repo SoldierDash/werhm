@@ -163,7 +163,8 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
  * Reads buffer from RX_FIFO after checking that there is data to be read
  *
  * return: 0xFF if RX_FIFO overflow
- * 		   0 if data was read from buffer
+ * 		   0 if data was read from buffer and CRC-pass
+ * 		   1 if data was read from buffer but CRC-fail
  */
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 
@@ -181,8 +182,11 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 			CC1101_burst_reg_read(0xFF, status, 2);
 
 			//return CRC check
-			return (char) (status[1] & 0x08);
-			//return 0;
+			if((status[1] & 0x08) != 0){
+				return 0;
+			}else{
+				return 1;
+			}
 		}else {
 			// Return the large size
 			*num_bytes = pktLen;
@@ -206,6 +210,7 @@ unsigned char CC1101_sleep_wake_on_radio(){
 	//Init WOR
 
 	//Start WOR
+	return 0;
 }
 
 /*

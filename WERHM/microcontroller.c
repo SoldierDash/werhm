@@ -25,7 +25,7 @@ void mcu_setup() {
 	//DCOCTL &= ~(BIT7 + BIT6 + BIT5); //DCOCTL |= BIT5 + BIT6;
 
 	/* Set pins for output */
-	P1DIR |= BIT0; // Enable P1.0
+	P1DIR |= BIT0 + BIT3; // Enable P1.0
 
 	P1OUT = 0x00;
 
@@ -89,10 +89,10 @@ void blink_red(){
 void blink_green(){
 	int i;
 	for(i = 5; i >= 0; i--){
-		P1OUT ^= BIT6;
+		P1OUT ^= BIT3;
 		_delay_cycles(40000);
 	}
-	P1OUT &= ~BIT6;
+	P1OUT &= ~BIT3;
 }
 
 
