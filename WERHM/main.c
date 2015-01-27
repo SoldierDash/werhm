@@ -10,7 +10,8 @@
 #include "cc1101.h"
 #include "microcontroller.h"
 
-#define TX_RX 0
+#define TX_RX 1
+
 
 int main(void) {
 
@@ -40,9 +41,14 @@ int main(void) {
 			var[i] = i - 1;
 		}
 
+
 		while(1){
 
-			cc1101_send_packet(var, sizeof(var));
+			//TODO
+			//Init TX timer as timerA
+			//Check TX flag instead of delay_cycles()
+
+			CC1101_send(var, sizeof(var));
 			blink_red();
 			_delay_cycles(1500000);
 		}
@@ -71,16 +77,6 @@ int main(void) {
 			status = cc1101_rcv_packet(rx, &rx_size);
 			rx_packets++;
 
-			/*
-			status = CC1101_read_status_register(0x33);
-
-			if((status & 0x80) != 0){
-				blink_green();
-			}else{
-				blink_red();
-			}
-			*/
-
 			//Check CRC-OK bit
 			if(status == 0){
 				//CRC pass
@@ -101,7 +97,5 @@ int main(void) {
 
 	//while(1);
 }
-
-
 
 

@@ -38,8 +38,6 @@ void mcu_setup() {
 	/* Clear interrupt pins */
 	//P1IFG &= ~BIT3;
 
-	rx_flag = 0;
-
 	/* Enable interrupt */
 	_bis_SR_register(GIE);
 }

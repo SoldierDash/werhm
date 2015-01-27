@@ -126,6 +126,9 @@ unsigned char CC1101_reg_read(unsigned char address);
 unsigned char CC1101_strobe(unsigned char strobe);
 unsigned char CC1101_read_status_register(unsigned char address);
 
+unsigned char CC1101_send(unsigned char *data, int num_bytes);
+unsigned char CC1101_wait_for_packet(unsigned char *data, int *num_bytes);
+
 void cc1101_config(unsigned char device_address, unsigned char channel_number);
 void cc1101_send_packet(unsigned char *data, int num_bytes);
 unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes);

@@ -11,6 +11,9 @@
 #define HEADER_BURST(x) (x | CC_HEADER_BURST)
 #define HEADER_SINGLE(x) (x & ~CC_HEADER_BURST)
 
+volatile char timer_flag = 0;
+volatile char rx_flag = 0;
+
 unsigned char CC1101_reg_write(unsigned char address, unsigned char data) {
 	unsigned char header = (address & ~CC_HEADER_RW) & ~CC_HEADER_BURST;
 
@@ -137,10 +140,84 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
 	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
 
-
 	//TODO Device checking
 	CC1101_strobe(CC_SFRX);
 
+}
+
+unsigned char CC1101_send(unsigned char *data, int num_bytes) {
+
+	//Reset/stop timerA
+	TACCR0 = 0;
+
+	char ACK_received = 0;
+	int num_attempts = 0;
+
+	unsigned char status = 0;
+
+	while (ACK_received == 0 && num_attempts < 2) {
+
+		//Send packet
+		cc1101_send_packet(data, num_bytes);
+
+		//TimerA config
+		TACCTL0 |= CCIE;
+		TACTL = TASSEL_2 + MC_1 + ID_3;
+		TACCR0 = 10000;
+
+		//Config and enable GD02 interrupt
+		P1IFG &= ~GDO2;
+		P1IES &= ~GDO2;
+		P1IE |= GDO2;
+
+		//Put device in RX mode and wait for timeout or ACK
+		status = CC1101_strobe(CC_SRX);
+
+		while (timer_flag == 0 && rx_flag == 0);
+
+		if (rx_flag) {
+
+			ACK_received = 1;
+			unsigned char temp[8];
+			int ACK_size;
+
+			cc1101_rcv_packet(temp, &ACK_size);
+		} else {
+			num_attempts++;
+		}
+
+		//Reset/stop timerA
+		TACCR0 = 0;
+	}
+
+	P1IE &= ~GDO2;
+	timer_flag = 0;
+	return status;
+}
+
+//Port1 ISR
+#pragma vector=PORT1_VECTOR
+__interrupt void PORT1_ISR(void) {
+
+	if (P1IFG & GDO2) {
+		P1IFG &= ~GDO2;
+		rx_flag = 1;
+	}
+}
+
+//TimerA ISR
+#pragma vector=TIMERA0_VECTOR
+__interrupt void Timer_A(void) {
+	static int timerA_count = 0;
+
+	timerA_count++;
+
+	if (timerA_count >= 20) {
+		timerA_count = 0;
+		timer_flag = 1;
+	} else {
+		timer_flag = 0;
+	}
 }
 
 void cc1101_send_packet(unsigned char *data, int num_bytes) {
@@ -155,8 +232,50 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
 
-	while (!(P1IN & GDO0));
-	while (P1IN & GDO0);
+	while (!(P1IN & GDO0))
+		;
+	while (P1IN & GDO0)
+		;
+}
+
+unsigned char CC1101_wait_for_packet(unsigned char *data, int *num_bytes) {
+
+	unsigned char status;
+
+	//TODO: replace with interrupt
+	while (!(P1IN & GDO2))
+		;
+
+	status = cc1101_rcv_packet(data, num_bytes);
+
+	//Check CRC-OK bit
+	if (status == 0) {
+		//CRC pass
+		blink_green();
+
+		char ACK[8];
+		ACK[0] = 8;
+		ACK[1] = 0x01;
+		ACK[2] = "A";
+		ACK[3] = "C";
+		ACK[4] = "K";
+		ACK[5] = 0;
+		ACK[6] = 0;
+		ACK[7] = 0;
+
+		CC1101_send(ACK, 8);
+
+		//Send ACK
+		return 0;
+	} else {
+		//Packet received but CRC failed
+		blink_red();
+
+		//Send NAK or some CRC fail packet
+		return 1;
+	}
+
+	//status = CC1101_strobe(CC_SFRX);
 }
 
 /*
@@ -182,12 +301,12 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 			CC1101_burst_reg_read(0xFF, status, 2);
 
 			//return CRC check
-			if((status[1] & 0x08) != 0){
+			if ((status[1] & 0x08) != 0) {
 				return 0;
-			}else{
+			} else {
 				return 1;
 			}
-		}else {
+		} else {
 			// Return the large size
 			*num_bytes = pktLen;
 
@@ -205,7 +324,7 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 /*
  * Send CC1101 into sleep mode with wake-on-radio enabled
  */
-unsigned char CC1101_sleep_wake_on_radio(){
+unsigned char CC1101_sleep_wake_on_radio() {
 
 	//Init WOR
 
