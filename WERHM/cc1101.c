@@ -150,12 +150,13 @@ unsigned char CC1101_send(unsigned char *data, int num_bytes) {
 	//Reset/stop timerA
 	TACCR0 = 0;
 
+	rx_flag = 0;
 	char ACK_received = 0;
 	int num_attempts = 0;
 
 	unsigned char status = 0;
 
-	while (ACK_received == 0 && num_attempts < 2) {
+	//while (ACK_received == 0 && num_attempts < 2) {
 
 		//Send packet
 		cc1101_send_packet(data, num_bytes);
@@ -175,25 +176,27 @@ unsigned char CC1101_send(unsigned char *data, int num_bytes) {
 
 		while (timer_flag == 0 && rx_flag == 0);
 
-		if (rx_flag) {
+		if (rx_flag == 1 && timer_flag == 0) {
 
 			ACK_received = 1;
 			unsigned char temp[8];
 			int ACK_size;
 
-			cc1101_rcv_packet(temp, &ACK_size);
+			//cc1101_rcv_packet(temp, &ACK_size);
 		} else {
 			num_attempts++;
 		}
 
 		//Reset/stop timerA
 		TACCR0 = 0;
-	}
+	//}
 
-	P1IE &= ~GDO2;
+	//P1IE &= ~GDO2;
 	timer_flag = 0;
-	return status;
+
+	return ACK_received;
 }
+
 
 //Port1 ISR
 #pragma vector=PORT1_VECTOR
@@ -204,6 +207,8 @@ __interrupt void PORT1_ISR(void) {
 		rx_flag = 1;
 	}
 }
+
+
 
 //TimerA ISR
 #pragma vector=TIMERA0_VECTOR
@@ -232,10 +237,8 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
 
-	while (!(P1IN & GDO0))
-		;
-	while (P1IN & GDO0)
-		;
+	while (!(P1IN & GDO0));
+	while (P1IN & GDO0);
 }
 
 unsigned char CC1101_wait_for_packet(unsigned char *data, int *num_bytes) {
@@ -243,27 +246,29 @@ unsigned char CC1101_wait_for_packet(unsigned char *data, int *num_bytes) {
 	unsigned char status;
 
 	//TODO: replace with interrupt
-	while (!(P1IN & GDO2))
-		;
+	while (!(P1IN & GDO2));
 
 	status = cc1101_rcv_packet(data, num_bytes);
+	blink_red();
 
 	//Check CRC-OK bit
 	if (status == 0) {
 		//CRC pass
 		blink_green();
+		blink_red();
+		blink_red();
 
-		char ACK[8];
+		unsigned char ACK[8];
 		ACK[0] = 8;
 		ACK[1] = 0x01;
-		ACK[2] = "A";
-		ACK[3] = "C";
-		ACK[4] = "K";
+		ACK[2] = 'A';
+		ACK[3] = 'C';
+		ACK[4] = 'K';
 		ACK[5] = 0;
 		ACK[6] = 0;
 		ACK[7] = 0;
 
-		CC1101_send(ACK, 8);
+		cc1101_send_packet(ACK, 8);
 
 		//Send ACK
 		return 0;
