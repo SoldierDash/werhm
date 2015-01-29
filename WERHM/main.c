@@ -13,6 +13,7 @@
 #define TX_RX 1
 
 
+
 int main(void) {
 
 
@@ -37,10 +38,9 @@ int main(void) {
 		var[1] = 0x01;
 		int i;
 
-		for(i = 2; i < 32; i++){
-			var[i] = i - 1;
-		}
 
+	volatile unsigned char var2[64];
+	volatile unsigned char var2_size;
 
 		while(1){
 
@@ -60,19 +60,29 @@ int main(void) {
 
 		rx_packets = 0;
 		CRC_pass = 0;
+	int i;
+	for(i = 0; i < 64; i++){
+		var2[i] = 0;
+	}
 
-		int i;
-		for(i = 0; i < 64; i++){
-			rx[i] = 0;
-		}
+	//cc1101_rcv_packet(var2, &var2_size);
+	//cc1101_rcv_packet(var2, &var2_size);
 
-		status = CC1101_strobe(CC_SFRX);
-		status = CC1101_strobe(CC_SRX);
+	// Wait for GDO2 to go high indicating RX buffer exceeds threshold
+	while(P1IN & GDO2);
 
-		// Wait for GDO2 to go high indicating RX buffer exceeds threshold
-		while(1){
-			while(!(P1IN & GDO2));
+	cc1101_rcv_packet(var2, &var2_size);
 
+
+	/* TX
+	volatile unsigned char var[32];
+	var[0] = sizeof(var) - 1;
+	var[1] = 0x01;
+	int i;
+	for(i = 2; i < 32; i++)
+		var[i] = i - 1;
+
+<<<<<<< HEAD
 			rx_size = 0;
 			status = cc1101_rcv_packet(rx, &rx_size);
 			rx_packets++;
@@ -87,11 +97,25 @@ int main(void) {
 				blink_red();
 			}
 			//CRC_percent = (float) (CRC_pass / rx_packets) * 100;
+=======
+	cc1101_send_packet(var, sizeof(var));
 
-			//status = CC1101_strobe(CC_SFRX);
-			CC1101_strobe(CC_SRX);
-		}
-	}
+	*/
+
+	//Reset chip to restore default register values
+	//CC1101_strobe(CC_SRES);
+
+	//cc1101_config();
+
+	//blink_red();
+
+	//unsigned char packet[3];
+
+	//packet[0] = 0x02;
+	//packet[1] = 0x05;
+	//packet[2] = 0x03;
+
+	//cc1101_send_packet(packet, 3);
 
 	//blink_red();
 

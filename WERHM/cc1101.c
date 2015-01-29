@@ -138,7 +138,12 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST2, 0x88); // Various test settings.
 	CC1101_reg_write(CC_TEST1, 0x31); // Various test settings.
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
+
 	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
+
+	CC1101_reg_write(CC_FIFOTHR, 0x00); // RX/TX FIFO capacity trigger		// 0x00 == 4bits
+	//TODO Device checking
+
 
 	//TODO Device checking
 	CC1101_strobe(CC_SFRX);
@@ -318,12 +323,17 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes) {
 			// Flush RXFIFO
 			CC1101_strobe(CC_SFRX);
 
-			// Error
-			return 0xFF;
-		}
-	} else
-		// Error
+	rx_flag = 0;
+
+	*num_bytes = CC1101_reg_read(CC_RXBYTES & CC_NUM_RXBYTES);
+	if (*num_bytes > MAX_RXFIFO) { // Overflowed
+		CC1101_strobe(CC_SFRX); // Clear RXFIFO
+		*num_bytes = 0;
 		return 0xFF;
+	} else {
+		CC1101_burst_reg_read(0xFF, data, *num_bytes);
+		return 0x00;
+	}
 }
 
 /*
@@ -343,18 +353,18 @@ unsigned char CC1101_sleep_wake_on_radio() {
  */
 unsigned char CC1101_read_status_register(unsigned char address) {
 
-	unsigned char header = address | CC_HEADER_RW | CC_HEADER_BURST;
+void cc1101_rx_sleep() {
 
-	volatile unsigned char data;
+	CC1101_strobe(CC_SFRX);
 
-	CS_ENABLE;
+	P1IE |= GDO2;
+	P1IFG &= ~GDO2;
 
-	spi_tx(header);
-	data = spi_tx(0x00);
+	P1IES &= ~GDO2;
+	CC1101_strobe(CC_SRX);
 
-	CS_DISABLE;
+	while (rx_flag == 0);
 
-	return data;
-
+	//_bis_SR_register(LPM0_bits + GIE);
 }
 
