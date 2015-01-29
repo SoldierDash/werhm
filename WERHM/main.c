@@ -44,21 +44,14 @@ int main(void) {
 
 		while(1){
 
-			cc1101_send_packet(var, sizeof(var));
+			//TODO
+			//Init TX timer as timerA
+			//Check TX flag instead of delay_cycles()
+
+			CC1101_send(var, sizeof(var));
 			blink_red();
-
-			/*
-			if(CC1101_send(var, sizeof(var))){
-				blink_green();
-			}else{
-				blink_red();
-			}
-			*/
 			_delay_cycles(1500000);
-
 		}
-
-
 	}else{
 
 		//Receive packet
@@ -73,15 +66,8 @@ int main(void) {
 			rx[i] = 0;
 		}
 
-		/*
-		while(1){
-			status = CC1101_strobe(CC_SFRX);
-			status = CC1101_strobe(CC_SRX);
-			CC1101_wait_for_packet(rx, &rx_size);
-		}
-		*/
-
-
+		status = CC1101_strobe(CC_SFRX);
+		status = CC1101_strobe(CC_SRX);
 
 		// Wait for GDO2 to go high indicating RX buffer exceeds threshold
 		while(1){
@@ -94,7 +80,8 @@ int main(void) {
 			//Check CRC-OK bit
 			if(status == 0){
 				//CRC pass
-				blink_red();
+				CRC_pass++;
+				blink_green();
 			}else{
 				//Packet received but CRC failed
 				blink_red();
@@ -104,7 +91,6 @@ int main(void) {
 			//status = CC1101_strobe(CC_SFRX);
 			CC1101_strobe(CC_SRX);
 		}
-
 	}
 
 	//blink_red();
