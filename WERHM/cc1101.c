@@ -296,4 +296,48 @@ __interrupt void Timer_A(void) {
 
 }
 
+/*
+ * Calculates 8-bit checksum from buffer in
+ *
+ * in must be filled and allocated, length does NOT include the last byte for checksum (can be changed)
+ *
+ * return: 8-bit checksum
+ *
+ */
+unsigned char generate_checksum(unsigned char *in, int length){
+
+	int i;
+	unsigned char sum = 0;
+
+	for(i = 0; i < length; i++){
+		sum += (in[i] * i);
+	}
+
+	return ~sum;
+}
+
+/*
+ *	Checks buffer for errors by recalculating checksum against the last byte of the buffer
+ *
+ *	legnth DOES include the last byte of the buffer for the checksum (can be changed)
+ *
+ *	return: 1 if no error detected
+ *			0 of error detected and checksum failed
+ *
+ */
+unsigned char check_checksum(unsigned char *in, int length){
+
+	int i;
+	unsigned char sum = 0;
+	for(i = 0; i < length-1; i++){
+		sum += (in[i] * i);
+	}
+
+	if((sum & in[length-1]) == 0){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
 

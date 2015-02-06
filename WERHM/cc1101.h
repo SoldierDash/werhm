@@ -122,8 +122,6 @@ volatile char timer_flag;
 #define CC_SNOP         0x3D        // No operation.
 
 
-
-
 unsigned char CC1101_reg_write(unsigned char address, unsigned char data);
 unsigned char CC1101_burst_reg_write(unsigned char starting_address, unsigned char *data, int num_bytes);
 unsigned char CC1101_reg_read(unsigned char address);
@@ -139,7 +137,10 @@ unsigned char cc1101_rcv_packet(unsigned char *data, int *num_bytes);
 
 unsigned char CC1101_sleep_wake_on_radio();
 
-
 unsigned char CC1101_burst_reg_read(unsigned char starting_address, unsigned char *data, int num_bytes);
+
+
+unsigned char generate_checksum(unsigned char *buffer, int length);
+unsigned char check_checksum(unsigned char *buffer, int length);
 
 #endif /* CC_1101_H_ */
