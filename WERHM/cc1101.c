@@ -11,7 +11,6 @@
 #define HEADER_BURST(x) (x | CC_HEADER_BURST)
 #define HEADER_SINGLE(x) (x & ~CC_HEADER_BURST)
 
-
 unsigned char CC1101_reg_write(unsigned char address, unsigned char data) {
 	unsigned char header = (address & ~CC_HEADER_RW) & ~CC_HEADER_BURST;
 
@@ -103,7 +102,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	// Write register settings
 	CC1101_reg_write(CC_IOCFG2, 0x01); // GDO2 output pin config.			// GDO2 High when TX, and low when finished
 	CC1101_reg_write(CC_IOCFG0, 0x06); // GDO0 output pin config.			// RX Threshold trigger on GD0
-	CC1101_reg_write(CC_PKTLEN, 0xFF); // Packet length.
+	CC1101_reg_write(CC_PKTLEN, 16); // Packet length.
 	CC1101_reg_write(CC_PKTCTRL1, 0x05); // Packet automation control.
 	CC1101_reg_write(CC_PKTCTRL0, 0x05); // Packet automation control.		// CRC enabled and Variable packet length enabled, data whitening off
 	CC1101_reg_write(CC_ADDR, device_address); // Device address.					// Device address for packet filtering
@@ -175,7 +174,7 @@ unsigned char cc1101_send(int num_bytes) {
 
 	TACCTL0 = CCIE;						// CCR0 interrupt enabled
 	TACTL = TASSEL_2 + MC_1 + ID_3;		// SMCLK/8, upmode
-	TACCR0 =  10000;					// 12.5 Hz
+	TACCR0 = 10000;					// 12.5 Hz
 
 	for (i = 0; i < 32; i++) {
 		ACK[i] = i;
@@ -184,7 +183,8 @@ unsigned char cc1101_send(int num_bytes) {
 	CC1101_strobe(CC_SRX);
 
 	//Wait for ACK or timeout
-	while ((!(P1IN & GDO2)) && timer_flag == 0);
+	while ((!(P1IN & GDO2)) && timer_flag == 0)
+		;
 
 	//Stop timerA
 	TACCR0 = 0;
@@ -285,7 +285,8 @@ unsigned char CC1101_read_status_register(unsigned char address) {
 
 // Timer A0 interrupt service routine
 #pragma vector=TIMERA0_VECTOR
-__interrupt void Timer_A(void) {
+__interrupt
+void Timer_A(void) {
 	static int timerA_count = 0;
 
 	timerA_count++;
@@ -304,12 +305,12 @@ __interrupt void Timer_A(void) {
  * return: 8-bit checksum
  *
  */
-unsigned char generate_checksum(unsigned char *in, int length){
+unsigned char generate_checksum(unsigned char *in, int length) {
 
 	int i;
 	unsigned char sum = 0;
 
-	for(i = 0; i < length; i++){
+	for (i = 0; i < length; i++) {
 		sum += (in[i] * i);
 	}
 
@@ -319,25 +320,24 @@ unsigned char generate_checksum(unsigned char *in, int length){
 /*
  *	Checks buffer for errors by recalculating checksum against the last byte of the buffer
  *
- *	legnth DOES include the last byte of the buffer for the checksum (can be changed)
+ *	length DOES include the last byte of the buffer for the checksum (can be changed)
  *
  *	return: 1 if no error detected
  *			0 of error detected and checksum failed
  *
  */
-unsigned char check_checksum(unsigned char *in, int length){
+unsigned char check_checksum(unsigned char *in, int length) {
 
 	int i;
 	unsigned char sum = 0;
-	for(i = 0; i < length-1; i++){
+	for (i = 0; i < length - 1; i++) {
 		sum += (in[i] * i);
 	}
 
-	if((sum & in[length-1]) == 0){
+	if ((sum & in[length - 1]) == 0) {
 		return 1;
-	}else{
+	} else {
 		return 0;
 	}
 }
-
 

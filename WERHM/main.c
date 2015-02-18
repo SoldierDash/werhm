@@ -10,10 +10,12 @@
 #include "cc1101.h"
 #include "microcontroller.h"
 
-#define TX_RX 1
+#define TX_RX 0
 
 //unsigned char buffer[32];
 //unsigned char ACK[32];
+
+#define tx_size 16
 
 
 int main(void) {
@@ -29,73 +31,32 @@ int main(void) {
 	if (TX_RX) {
 
 		//Continuously send packets
-		buffer[0] = sizeof(buffer) - 1;
-		buffer[1] = 0x01;
 		int i;
 
-		buffer[0] = sizeof(buffer) - 1;
+		buffer[0] = tx_size;
 		buffer[1] = 0x01;
-		for (i = 2; i < 32; i++) {
+		for (i = 2; i < tx_size; i++) {
 			buffer[i] = i - 1;
 		}
 
+		buffer[tx_size-1] = generate_checksum(buffer, tx_size-2);
+		//buffer[31] = 12;
 
-		for (i = 0; i < 32; i++) {
+		for (i = 0; i < tx_size; i++) {
 			ACK[i] = i;
 		}
 
 		while (1) {
 
-			//cc1101_send(var, sizeof(var));
+			cc1101_send(tx_size);
 
-			cc1101_send(sizeof(buffer));
-
-			//TODO
-			//Init TX timer as timerA
-			//Check TX flag instead of delay_cycles()
-
-			/*
-			cc1101_send_packet(buffer, sizeof(buffer));
-			blink_red();
-
-			TACCTL0 = CCIE;						// CCR0 interrupt enabled
-			TACTL = TASSEL_2 + MC_1 + ID_3;		// SMCLK/8, upmode
-			TACCR0 =  10000;					// 12.5 Hz
-
-			//Wait for ACK
-			CC1101_strobe(CC_SRX);
-
-			for (i = 0; i < 32; i++) {
-				ACK[i] = i;
-			}
-
-			//while(!(P1IN & GDO2));
-			//cc1101_rcv_packet(ACK, &ACK_size);
-			//blink_green();
-
-
-			while ((!(P1IN & GDO2)) && timer_flag == 0);
-
-			TACCR0 = 0;
-			if (timer_flag == 1) {
-				blink_red();
-				blink_red();
-				blink_red();
-			} else {
-				cc1101_rcv_packet(ACK, &ACK_size);
-				blink_green();
-			}
-
-			timer_flag = 0;
-
-			*/
 			_delay_cycles(1500000);
 		}
 	} else {
 
 		//Receive packets
 
-		int rx_size = 0;
+		volatile int rx_size = 0;
 		int i;
 
 		CC1101_strobe(CC_SRX);
@@ -105,7 +66,7 @@ int main(void) {
 
 			ACK[0] = sizeof(ACK) - 1;
 			ACK[1] = 0x01;
-			for (i = 2; i < 32; i++) {
+			for (i = 2; i < tx_size; i++) {
 				ACK[i] = i;
 			}
 
@@ -116,11 +77,15 @@ int main(void) {
 			cc1101_rcv_packet(buffer, &rx_size);
 			blink_red();
 
-			_delay_cycles(200000);
+			if(check_checksum(buffer, rx_size) == 1){
 
-			cc1101_send_packet(ACK, sizeof(ACK));
-
-			blink_green();
+				cc1101_send_packet(ACK, tx_size);
+				blink_green();
+			}else{
+				blink_red();
+				blink_red();
+				blink_red();
+			}
 
 			CC1101_strobe(CC_SRX);
 		}
