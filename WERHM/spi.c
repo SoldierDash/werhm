@@ -19,124 +19,22 @@
 
 volatile char interrupt_rx; // Temporary register for storing rx from spi_interrupt
 
-void
-spi_setup() {
+void spi_setup() {
 
-#ifndef SLAVE_SPI
-	/*
-	 * USI Control Register 0
-	 * USIPEx: Enable SPI mode for pin 1.x
-	 * -Pin must be set to input
-	 * USIOE: USI Data output enable
-	 */
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE + USIMST; // Port, SPI master
+	WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+	P1OUT = 0x00;                             // P1 setup for LED
+	P1DIR |= 0x01;                            //
+	P3OUT = 0x40;                             // Set slave reset
+	P3DIR |= CS + WP + HOLD + BIT7;
+	P3SEL |= 0x31;                            // P3.0,4,5 USCI_A0 option select
+	UCA0CTL0 |= UCCKPL + UCMSB + UCMST + UCSYNC;  // 3-pin, 8-bit SPI master
+	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
+	UCA0BR0 |= 0x02;                          // /2
+	UCA0BR1 = 0;                              //
+	UCA0MCTL = 0;                             // No modulation
+	UCA0CTL1 &= ~UCSWRST;                   // **Initialize USCI state machine**
+	IE2 |= UCA0RXIE;                          // Enable USCI0 RX interrupt
 
-	/*
-	 * USI Clock Control Register
-	 * USIDIV_x: Clock divider (2^x)
-	 * USISSEL_x: Clock source (1:ACLK, 2/3:SMCLK)
-	 * -Automatically SCLK if slave
-	 */
-	USICKCTL = USIDIV_4 + USISSEL_2 + USICKPL;
-
-	/*
-	 * USISWRST: USI software reset (1->reset)
-	 * When high, stops operation of counter and shift register
-	 */
-	USICTL0 &= ~USISWRST;
-
-	//Set SDO low and remove extra bit errata
-	USISRL = 0x00;
-	USICNT = 1;
-
-	//TODO Reset slave devices
-#else
-
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
-
-	USICKCTL |= USICKPL;
-
-
-
-	USICTL0 &= ~USISWRST;
-
-	// Slave ready to read one byte
-	USISRL = 0x00;
-	USICNT = 8;
-
-	/*
-	 * USI Control Register 1
-	 * USIIE: USI counter interrupt enable
-	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
-	 * -When USIIFG=1 & USIIE=0, SCLK will hold
-	 */
-	USICTL1 |= USIIE;
-
-	// Start waiting for input
-	_bis_SR_register(LPM0_bits + GIE);
-#endif
-}
-
-void
-spi_tx_lpm_iu(char data) {
-	_bic_SR_register(GIE);
-
-	/*
-	 * USI Shift Register Low
-	 * -Lower 8 bits of shifted data
-	 */
-	USISRL = data;
-
-	/*
-	 * USI Count
-	 * USICNT: Number of bits to rx/tx
-	 * -Automatically clears USIIFG
-	 * -Sets USIIFG when USICNT=0
-	 */
-	USICNT = 8;
-
-	// Wait until IFG is set
-	USICTL1 |= USIIE;
-
-	_bis_SR_register(LPM0_bits + GIE);
-
-	return interrupt_rx;
-}
-
-char
-spi_tx_am(char data) {
-	USISRL = data;
-
-	USICNT = 8;
-
-	// Wait until IFG is set
-	while(!(USICTL1 & USIIFG));
-
-	return USISRL;
-}
-
-#pragma vector=USI_VECTOR
-__interrupt void
-universal_serial_interface(void) {
-
-#ifndef SLAVE_SPI
-	// Disable USI interrupt
-	USICTL1 &= ~USIIE;
-
-	// Store message
-	interrupt_rx = USISRL;
-
-	// Wake from LPM0
-	_bic_SR_register_on_exit(LPM0_bits);
-
-#else
-	// Flash LED to indicate reciept
-	led_flash();
-
-	// Ready to recieve another byte
-	USISRL = 0x00;
-	USICNT = 8;
-#endif
 }
 
 

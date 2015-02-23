@@ -60,12 +60,12 @@ mcu_wait_gie() {
 void
 led_flash() {
 
-	int j = 1;
+	int j = 5;
 	for (;j != 0; j--) {
 		volatile unsigned int i;	// volatile to prevent optimization
 		//volatile unsigned int j;
 
-		P1OUT ^= BIT0;				// Toggle P1.0 using exclusive-OR
+		P1OUT ^= BIT7;				// Toggle P1.0 using exclusive-OR
 
 
 		i = 5000;					// SW Delay
@@ -75,5 +75,5 @@ led_flash() {
 	}
 
 
-	P1OUT &= ~BIT0;
+	P1OUT &= ~BIT7;
 }
