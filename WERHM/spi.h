@@ -17,5 +17,7 @@
 //void spi_setup(void (*spi_rx)(char));
 void spi_setup();
 
+unsigned spi_send(unsigned char out);
+
 
 #endif /* SPI_H_ */
