@@ -17,10 +17,5 @@
 //void spi_setup(void (*spi_rx)(char));
 void spi_setup();
 
-/* SPI Transmit in Low Power Mode, Interrupt Unsafe */
-char spi_tx_lpm_iu(char tx);
-
-/* SPI Transmit in Active Power mode (interrupt safe) */
-char spi_tx_am(char tx);
 
 #endif /* SPI_H_ */

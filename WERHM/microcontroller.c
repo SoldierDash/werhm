@@ -68,7 +68,7 @@ led_flash() {
 		P1OUT ^= BIT7;				// Toggle P1.0 using exclusive-OR
 
 
-		i = 5000;					// SW Delay
+		i = 200;					// SW Delay
 		do {
 			i--;
 		} while(i != 0);
