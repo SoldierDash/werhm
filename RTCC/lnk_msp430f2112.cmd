@@ -31,7 +31,7 @@
 /* ============================================================================ */
 
 /******************************************************************************/
-/* lnk_msp430g2553.cmd - LINKER COMMAND FILE FOR LINKING MSP430G2553 PROGRAMS     */
+/* lnk_msp430f2112.cmd - LINKER COMMAND FILE FOR LINKING MSP430F2112 PROGRAMS     */
 /*                                                                            */
 /*   Usage:  lnk430 <obj files...>    -o <out file> -m <map file> lnk.cmd     */
 /*           cl430  <src files...> -z -o <out file> -m <map file> lnk.cmd     */
@@ -44,7 +44,7 @@
 /* -heap   0x0100                                   HEAP AREA SIZE            */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-/* Version: 1.153                                                             */
+/* Version: 1.159                                                             */
 /*----------------------------------------------------------------------------*/
 
 /****************************************************************************/
@@ -56,12 +56,12 @@ MEMORY
     SFR                     : origin = 0x0000, length = 0x0010
     PERIPHERALS_8BIT        : origin = 0x0010, length = 0x00F0
     PERIPHERALS_16BIT       : origin = 0x0100, length = 0x0100
-    RAM                     : origin = 0x0200, length = 0x0200
+    RAM                     : origin = 0x0200, length = 0x0100
     INFOA                   : origin = 0x10C0, length = 0x0040
     INFOB                   : origin = 0x1080, length = 0x0040
     INFOC                   : origin = 0x1040, length = 0x0040
     INFOD                   : origin = 0x1000, length = 0x0040
-    FLASH                   : origin = 0xC000, length = 0x3FE0
+    FLASH                   : origin = 0xF800, length = 0x07DE
     INT00                   : origin = 0xFFE0, length = 0x0002
     INT01                   : origin = 0xFFE2, length = 0x0002
     INT02                   : origin = 0xFFE4, length = 0x0002
@@ -108,7 +108,7 @@ SECTIONS
     .infoD     : {} > INFOD
 
     /* MSP430 Interrupt vectors          */
-    TRAPINT      : { * ( .int00 ) } > INT00 type = VECT_INIT
+    .int00       : {}               > INT00
     .int01       : {}               > INT01
     PORT1        : { * ( .int02 ) } > INT02 type = VECT_INIT
     PORT2        : { * ( .int03 ) } > INT03 type = VECT_INIT
@@ -130,5 +130,5 @@ SECTIONS
 /* Include peripherals memory map                                           */
 /****************************************************************************/
 
--l msp430g2553.cmd
+-l msp430f2112.cmd
 
