@@ -32,6 +32,6 @@ void spi_setup();
 unsigned char spi_tx_lpm_iu(unsigned char tx);
 
 /* SPI Transmit in Active Power mode (interrupt safe) */
-unsigned char spi_tx_am(unsigned char data);
+unsigned char spi_tx_am(unsigned char tx);
 
 #endif /* SPI_H_ */

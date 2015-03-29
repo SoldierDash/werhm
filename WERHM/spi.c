@@ -44,39 +44,26 @@ void spi_setup() {
 	P3OUT |= BIT6;
 }
 
-unsigned char spi_tx_am(unsigned char data) {
-
-	unsigned char out = 0;
-	int i;
-
-	//SCK_LOW;
-	_delay_cycles(1000);
-
-	for (i = 0; i < 8; i++) {
-		SCK_LOW;
-		_delay_cycles(1000);
-		if (data & (1 << i)) {
-			P3OUT |= MOSI;
-		} else {
-			P3OUT &= ~MOSI;
-		}
-		if (SPI_READ) {
-			out |= (1 << i);
-		}
-		SCK_HIGH;
-		_delay_cycles(1000);
-	}
-	return out;
-}
-
-
-unsigned char spi_tx_lpm_iu(unsigned char tx){
+unsigned char spi_tx_am(unsigned char tx) {
 
 	unsigned char out = 0;
 
 	IFG2 &= ~UCA0RXIFG;
 	UCA0TXBUF = tx;
-	while (!(IFG2 & UCA0RXIFG));
+	while (!(IFG2 & UCA0RXIFG))
+		;
+	out = UCA0RXBUF;
+	return out;
+}
+
+unsigned char spi_tx_lpm_iu(unsigned char tx) {
+
+	unsigned char out = 0;
+
+	IFG2 &= ~UCA0RXIFG;
+	UCA0TXBUF = tx;
+	while (!(IFG2 & UCA0RXIFG))
+		;
 	out = UCA0RXBUF;
 	return out;
 
