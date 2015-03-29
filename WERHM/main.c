@@ -11,19 +11,29 @@
 #include "microcontroller.h"
 #include "spi.h"
 #include "flash.h"
+#include "cc1101.h"
 
 void main(){
 
-	volatile unsigned char status, status2;
-	volatile unsigned char read1, read2;
+
 
 	mcu_setup();
 	spi_setup();
 
-	_delay_cycles(100000);
+	cc1101_config(1, 0);
 
-	status = flash_setup();
+	int i;
+	int tx_size = 32;
+	tx[0] = tx_size;
+	tx[1] = 0x01;
+	for(i = 2; i < tx_size; i++){
+		tx[i] = i;
+	}
 
+
+	//cc1101_send_packet(tx, tx_size);
+
+	volatile unsigned char status_reg = CC1101_reg_read(CC_IOCFG0);
 
 	led_flash();
 	while(1);

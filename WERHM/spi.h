@@ -20,9 +20,6 @@
 #define MOSI BIT4
 #define SCK BIT0
 
-#define SCK_HIGH P3OUT |= SCK
-#define SCK_LOW P3OUT &= ~SCK
-
 #define SPI_READ (P3IN & MISO)
 
 //void spi_setup(void (*spi_rx)(char));

@@ -23,15 +23,13 @@ volatile char interrupt_rx; // Temporary register for storing rx from spi_interr
 void spi_setup() {
 
 	P1DIR |= CC1101_CS + FLASH_CS + BIT1;
-	//P3DIR |= SCK + MOSI + BIT6;
-	//P3DIR &= ~MISO;
 
-	FLASH_DESELECT;
-	CC1101_DESELECT;
-	//SCK_LOW;
 
 	P3SEL |= BIT0 + BIT5 + BIT4;
 	P3DIR |= BIT6;
+
+	FLASH_DESELECT;
+	CC1101_DESELECT;
 
 	UCA0CTL0 |= UCCKPH + UCMSB + UCMST + UCSYNC; // 3-pin, 8-bit SPI master
 	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
@@ -50,8 +48,7 @@ unsigned char spi_tx_am(unsigned char tx) {
 
 	IFG2 &= ~UCA0RXIFG;
 	UCA0TXBUF = tx;
-	while (!(IFG2 & UCA0RXIFG))
-		;
+	while (!(IFG2 & UCA0RXIFG));
 	out = UCA0RXBUF;
 	return out;
 }
@@ -62,8 +59,7 @@ unsigned char spi_tx_lpm_iu(unsigned char tx) {
 
 	IFG2 &= ~UCA0RXIFG;
 	UCA0TXBUF = tx;
-	while (!(IFG2 & UCA0RXIFG))
-		;
+	while (!(IFG2 & UCA0RXIFG));
 	out = UCA0RXBUF;
 	return out;
 

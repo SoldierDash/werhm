@@ -81,9 +81,9 @@ void flash_read_buffer(unsigned long starting_addr, unsigned int num_bytes,
 
 	FLASH_SELECT;
 	spi_tx_am(0x03);
-	spi_tx_am((addr & 0xFFFFFF) >> 16);
-	spi_tx_am((addr & 0xFFFF) >> 8);
-	spi_tx_am(addr & 0xFF);
+	spi_tx_am((starting_addr & 0xFFFFFF) >> 16);
+	spi_tx_am((starting_addr & 0xFFFF) >> 8);
+	spi_tx_am(starting_addr & 0xFF);
 	for(i = 0; i < num_bytes; i++){
 		buffer[i] = spi_tx_am(0);
 	}
