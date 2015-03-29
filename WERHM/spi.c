@@ -13,130 +13,71 @@
 
 #include <msp430.h>
 #include "microcontroller.h"
+#include "spi.h"
 
 // Slave mode ifdef, else Master mode
 //#define SLAVE_SPI
 
 volatile char interrupt_rx; // Temporary register for storing rx from spi_interrupt
 
-void
-spi_setup() {
+void spi_setup() {
 
-#ifndef SLAVE_SPI
-	/*
-	 * USI Control Register 0
-	 * USIPEx: Enable SPI mode for pin 1.x
-	 * -Pin must be set to input
-	 * USIOE: USI Data output enable
-	 */
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE + USIMST; // Port, SPI master
+	P1DIR |= CC1101_CS + FLASH_CS + BIT1;
+	//P3DIR |= SCK + MOSI + BIT6;
+	//P3DIR &= ~MISO;
 
-	/*
-	 * USI Clock Control Register
-	 * USIDIV_x: Clock divider (2^x)
-	 * USISSEL_x: Clock source (1:ACLK, 2/3:SMCLK)
-	 * -Automatically SCLK if slave
-	 */
-	USICKCTL = USIDIV_4 + USISSEL_2 + USICKPL;
+	FLASH_DESELECT;
+	CC1101_DESELECT;
+	//SCK_LOW;
 
-	/*
-	 * USISWRST: USI software reset (1->reset)
-	 * When high, stops operation of counter and shift register
-	 */
-	USICTL0 &= ~USISWRST;
+	P3SEL |= BIT0 + BIT5 + BIT4;
+	P3DIR |= BIT6;
 
-	//Set SDO low and remove extra bit errata
-	USISRL = 0x00;
-	USICNT = 1;
+	UCA0CTL0 |= UCCKPH + UCMSB + UCMST + UCSYNC; // 3-pin, 8-bit SPI master
+	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
+	UCA0BR0 |= 0x02;
+	UCA0BR1 = 0;                              //
+	UCA0MCTL = 0;
+	UCA0CTL1 &= ~UCSWRST;                   // **Initialize USCI state machine**
 
-	//TODO Reset slave devices
-#else
-
-	USICTL0 |= USIPE7 +  USIPE6 + USIPE5 + USIOE; // Port, SPI slave
-
-	USICKCTL |= USICKPL;
-
-
-
-	USICTL0 &= ~USISWRST;
-
-	// Slave ready to read one byte
-	USISRL = 0x00;
-	USICNT = 8;
-
-	/*
-	 * USI Control Register 1
-	 * USIIE: USI counter interrupt enable
-	 * -When USIIFG=1 & USIIE=1, will trigger USI_VECTOR interrupt and SCLK will hold
-	 * -When USIIFG=1 & USIIE=0, SCLK will hold
-	 */
-	USICTL1 |= USIIE;
-
-	// Start waiting for input
-	_bis_SR_register(LPM0_bits + GIE);
-#endif
+	P1OUT |= BIT1;
+	P3OUT |= BIT6;
 }
 
-void
-spi_tx_lpm_iu(char data) {
-	_bic_SR_register(GIE);
+unsigned char spi_tx_am(unsigned char data) {
 
-	/*
-	 * USI Shift Register Low
-	 * -Lower 8 bits of shifted data
-	 */
-	USISRL = data;
+	unsigned char out = 0;
+	int i;
 
-	/*
-	 * USI Count
-	 * USICNT: Number of bits to rx/tx
-	 * -Automatically clears USIIFG
-	 * -Sets USIIFG when USICNT=0
-	 */
-	USICNT = 8;
+	//SCK_LOW;
+	_delay_cycles(1000);
 
-	// Wait until IFG is set
-	USICTL1 |= USIIE;
-
-	_bis_SR_register(LPM0_bits + GIE);
-
-	return interrupt_rx;
-}
-
-char
-spi_tx_am(char data) {
-	USISRL = data;
-
-	USICNT = 8;
-
-	// Wait until IFG is set
-	while(!(USICTL1 & USIIFG));
-
-	return USISRL;
-}
-
-#pragma vector=USI_VECTOR
-__interrupt void
-universal_serial_interface(void) {
-
-#ifndef SLAVE_SPI
-	// Disable USI interrupt
-	USICTL1 &= ~USIIE;
-
-	// Store message
-	interrupt_rx = USISRL;
-
-	// Wake from LPM0
-	_bic_SR_register_on_exit(LPM0_bits);
-
-#else
-	// Flash LED to indicate reciept
-	led_flash();
-
-	// Ready to recieve another byte
-	USISRL = 0x00;
-	USICNT = 8;
-#endif
+	for (i = 0; i < 8; i++) {
+		SCK_LOW;
+		_delay_cycles(1000);
+		if (data & (1 << i)) {
+			P3OUT |= MOSI;
+		} else {
+			P3OUT &= ~MOSI;
+		}
+		if (SPI_READ) {
+			out |= (1 << i);
+		}
+		SCK_HIGH;
+		_delay_cycles(1000);
+	}
+	return out;
 }
 
 
+unsigned char spi_tx_lpm_iu(unsigned char tx){
+
+	unsigned char out = 0;
+
+	IFG2 &= ~UCA0RXIFG;
+	UCA0TXBUF = tx;
+	while (!(IFG2 & UCA0RXIFG));
+	out = UCA0RXBUF;
+	return out;
+
+}

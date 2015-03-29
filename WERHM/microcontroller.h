@@ -8,7 +8,11 @@
 #ifndef _MICROCONTROLLER_H_
 #define _MICROCONTROLLER_H_
 
-#define PRAGMA_VECTOR PORT1_VECTOR
+#define LED_PIN BIT3
+#define LED_ON P1OUT |= LED_PIN
+#define LED_OFF P1OUT &= ~LED_PIN
+
+#define FLASH_ON P2OUT |= BIT3;
 
 void mcu_setup();
 
