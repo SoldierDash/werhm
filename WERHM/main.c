@@ -22,6 +22,7 @@ void main(){
 
 	cc1101_config(1, 0);
 
+
 	int i;
 	int tx_size = 32;
 	tx[0] = tx_size;
@@ -31,9 +32,10 @@ void main(){
 	}
 
 
-	//cc1101_send_packet(tx, tx_size);
-
 	volatile unsigned char status_reg = CC1101_reg_read(CC_IOCFG0);
+
+	led_flash();
+	cc1101_send_packet(tx, tx_size);
 
 	led_flash();
 	while(1);
