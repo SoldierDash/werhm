@@ -37,7 +37,7 @@
 //char paTableLen = 1;
 
 unsigned char buffer[32];
-unsigned char ACK[32];
+//unsigned char ACK[32];
 volatile char timer_flag;
 
 

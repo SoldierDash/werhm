@@ -151,6 +151,8 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	 * CC1101_reg_write(0x3F, length)
 	 * CC1101_reg_write(0x3F, dev addr)
 	 */
+	CC1101_strobe(CC_SFTX);
+
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
 
@@ -176,15 +178,16 @@ unsigned char cc1101_send(int num_bytes) {
 	TACTL = TASSEL_2 + MC_1 + ID_3;		// SMCLK/8, upmode
 	TACCR0 = 10000;					// 12.5 Hz
 
+	/*
 	for (i = 0; i < 32; i++) {
 		ACK[i] = i;
 	}
+	*/
 
 	CC1101_strobe(CC_SRX);
 
 	//Wait for ACK or timeout
-	while ((!(P1IN & GDO2)) && timer_flag == 0)
-		;
+	while ((!(P1IN & GDO2)) && timer_flag == 0);
 
 	//Stop timerA
 	TACCR0 = 0;
@@ -197,7 +200,7 @@ unsigned char cc1101_send(int num_bytes) {
 		blink_red();
 		blink_red();
 	} else {
-		cc1101_rcv_packet(ACK, &ACK_size);
+		//cc1101_rcv_packet(ACK, &ACK_size);
 		blink_green();
 	}
 
