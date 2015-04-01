@@ -99,7 +99,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	// Write register settings
 	CC1101_reg_write(CC_IOCFG2, 0x01); // GDO2 output pin config.			// GDO2 High when TX, and low when finished
 	CC1101_reg_write(CC_IOCFG0, 0x06); // GDO0 output pin config.			// RX Threshold trigger on GD0
-	CC1101_reg_write(CC_PKTLEN, 16); // Packet length.
+	CC1101_reg_write(CC_PKTLEN, 64); // Packet length.
 	CC1101_reg_write(CC_PKTCTRL1, 0x05); // Packet automation control.
 	CC1101_reg_write(CC_PKTCTRL0, 0x05); // Packet automation control.		// CRC enabled and Variable packet length enabled, data whitening off
 	CC1101_reg_write(CC_ADDR, device_address); // Device address.					// Device address for packet filtering
@@ -132,7 +132,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST2, 0x88); // Various test settings.
 	CC1101_reg_write(CC_TEST1, 0x31); // Various test settings.
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
-	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
+	CC1101_reg_write(CC_FIFOTHR, 0x00); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
 
 	//TODO Device checking
 	//CC1101_strobe(CC_SFRX);

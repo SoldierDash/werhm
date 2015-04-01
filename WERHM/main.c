@@ -16,26 +16,43 @@
 void main(){
 
 
+	unsigned char TX = 0;
 
 	mcu_setup();
 	spi_setup();
-
 	cc1101_config(1, 0);
 
-
 	int i;
-	int tx_size = 32;
+	int tx_size = 64;
 	tx[0] = tx_size;
 	tx[1] = 0x01;
 	for(i = 2; i < tx_size; i++){
 		tx[i] = i;
 	}
 
+	if(TX){
+		//send packet
+		cc1101_send_packet(tx, tx_size);
+		led_flash();
 
-	volatile unsigned char status_reg = CC1101_reg_read(CC_IOCFG0);
+		while(1);
+	}else{
+		//receive packet
 
-	led_flash();
-	cc1101_send_packet(tx, tx_size);
+		CC1101_strobe(CC_SRX);
+
+		while(!(P1IN & GDO2));
+		int rx_size = 0;
+		cc1101_rcv_packet(rx, &rx_size);
+		led_flash();
+
+	}
+
+
+
+
+	//led_flash();
+	//cc1101_send_packet(tx, tx_size);
 
 	led_flash();
 	while(1);
