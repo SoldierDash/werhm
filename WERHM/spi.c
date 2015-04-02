@@ -15,9 +15,6 @@
 #include "microcontroller.h"
 #include "spi.h"
 
-// Slave mode ifdef, else Master mode
-//#define SLAVE_SPI
-
 volatile char interrupt_rx; // Temporary register for storing rx from spi_interrupt
 
 void spi_setup() {
@@ -34,7 +31,7 @@ void spi_setup() {
 	UCA0CTL0 |= UCCKPH + UCMSB + UCMST + UCSYNC; // 3-pin, 8-bit SPI master
 	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
 	UCA0BR0 |= 0x02;
-	UCA0BR1 = 0;                              //
+	UCA0BR1 = 0;
 	UCA0MCTL = 0;
 	UCA0CTL1 &= ~UCSWRST;                   // **Initialize USCI state machine**
 

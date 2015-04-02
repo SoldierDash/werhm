@@ -270,3 +270,19 @@ unsigned char CC1101_read_status_register(unsigned char address) {
 
 }
 
+/*
+ * Waits for GDO2 assertion from CC1101 indicating packet received
+ *
+ * TODO: also add timeout for when packet doesn't come
+ */
+void wait_GDO2(){
+
+	P1IE |= GDO2;
+	P1IES |= GDO2;		//lo-hi edge
+	P1IFG &= ~GDO2;
+	rx_flag = 0;
+	//while(~rx_flag){
+		_BIS_SR(CPUOFF + GIE);
+	//}
+}
+

@@ -39,21 +39,29 @@ void main(){
 	}else{
 		//receive packet
 
-		CC1101_strobe(CC_SRX);
+		while(1){
+			CC1101_strobe(CC_SRX);
 
-		while(!(P1IN & GDO2));
-		int rx_size = 0;
-		cc1101_rcv_packet(rx, &rx_size);
-		led_flash();
+			while(!(P1IN & GDO2));
 
+			//wait_GDO2();
+			int rx_size = 0;
+			cc1101_rcv_packet(rx, &rx_size);
+			led_flash();
+		}
 	}
 
 
-
-
-	//led_flash();
-	//cc1101_send_packet(tx, tx_size);
-
-	led_flash();
-	while(1);
 }
+
+
+#pragma vector=PORT1_VECTOR
+__interrupt void Port1_ISR(){
+
+	if(P1IFG & GDO2){
+		P1IFG &= ~GDO2;
+		rx_flag = 1;
+	}
+	rx_flag = 1;
+}
+
