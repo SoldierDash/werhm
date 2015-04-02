@@ -6,17 +6,13 @@
  *      Author: Mitch
  */
 
-
 #include <msp430.h>
 #include "microcontroller.h"
 #include "spi.h"
 #include "flash.h"
 #include "cc1101.h"
 
-void main(){
-
-
-	unsigned char TX = 0;
+void main() {
 
 	mcu_setup();
 	spi_setup();
@@ -26,42 +22,37 @@ void main(){
 	int tx_size = 64;
 	tx[0] = tx_size;
 	tx[1] = 0x01;
-	for(i = 2; i < tx_size; i++){
+	for (i = 2; i < tx_size; i++) {
 		tx[i] = i;
 	}
 
-	if(TX){
-		//send packet
-		cc1101_send_packet(tx, tx_size);
+	volatile int rx_size = 0;
+	volatile unsigned char status, status2;
+
+	led_flash();
+
+	while (1) {
+
+
+		CC1101_strobe(CC_SRX);
+
+		status = CC1101_read_status_register(CC_MARCSTATE);
+		while(CC1101_read_status_register(CC_MARCSTATE) == 0x08);
+		status2 = CC1101_read_status_register(CC_MARCSTATE);
+
+ 		while (!(P1IN & GDO2));
+
+		int temp = 0;
+		cc1101_rcv_packet(rx, &temp);
+		rx_size = temp;
 		led_flash();
 
-		while(1);
-	}else{
-		//receive packet
+		//status = CC1101_read_status_register(CC_MARCSTATE);
 
-		while(1){
-			CC1101_strobe(CC_SRX);
 
-			while(!(P1IN & GDO2));
 
-			//wait_GDO2();
-			int rx_size = 0;
-			cc1101_rcv_packet(rx, &rx_size);
-			led_flash();
-		}
 	}
-
 
 }
 
-
-#pragma vector=PORT1_VECTOR
-__interrupt void Port1_ISR(){
-
-	if(P1IFG & GDO2){
-		P1IFG &= ~GDO2;
-		rx_flag = 1;
-	}
-	rx_flag = 1;
-}
 
