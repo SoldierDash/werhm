@@ -15,49 +15,37 @@
 //unsigned char buffer[32];
 //unsigned char ACK[32];
 
-#define tx_size 16
+#define tx_size 32
 
 
 int main(void) {
 
-	//WDTCTL = WDTPW + WDTHOLD; Handled in mcu_setup()
+	//WDTCTL = WDTPW + WDTHOLD; //Handled in mcu_setup()
 
 	mcu_setup();
 	spi_setup();
 
-	cc1101_config(0x02, 0x00); // Device address 1, Channel number 0
+	cc1101_config(0x01, 0x00); // Device address 1, Channel number 0
 
 
 	if (TX_RX) {
 
 		//Continuously send packets
-		int i;
 
-		buffer[0] = tx_size;
-		buffer[1] = 0x01;
-		for (i = 2; i < tx_size; i++) {
-			buffer[i] = i - 1;
-		}
-
-		//buffer[tx_size-1] = generate_checksum(buffer, tx_size-2);
-		//buffer[31] = 12;
-
-		/*
-		for (i = 0; i < tx_size; i++) {
-			ACK[i] = i;
-		}
-		 */
 		while (1) {
 
+			buffer[0] = tx_size;
+			buffer[1] = 0x01;
+
+			int i;
 			for (i = 2; i < tx_size; i++) {
 				buffer[i] = i - 1;
 			}
 
-
-			blink_red();
 			cc1101_send_packet(buffer, 32);
 			blink_red();
 			_delay_cycles(1500000);
+			CC1101_strobe(CC_SFTX);
 		}
 	} else {
 

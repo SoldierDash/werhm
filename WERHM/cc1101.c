@@ -151,7 +151,7 @@ void cc1101_send_packet(unsigned char *data, int num_bytes) {
 	 * CC1101_reg_write(0x3F, length)
 	 * CC1101_reg_write(0x3F, dev addr)
 	 */
-	CC1101_strobe(CC_SFTX);
+	//CC1101_strobe(CC_SFTX);
 
 	CC1101_burst_reg_write(0x3F, data, num_bytes);
 	CC1101_strobe(CC_STX);
