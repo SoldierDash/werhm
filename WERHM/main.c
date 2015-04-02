@@ -19,36 +19,27 @@ void main() {
 	cc1101_config(1, 0);
 
 	int i;
-	int tx_size = 64;
-	tx[0] = tx_size;
-	tx[1] = 0x01;
-	for (i = 2; i < tx_size; i++) {
-		tx[i] = i;
-	}
 
 	volatile int rx_size = 0;
-	volatile unsigned char status, status2;
+	volatile unsigned char status = 0;
+
 
 	led_flash();
 
+	//CC1101_strobe(CC_SFTX);
+	//CC1101_strobe(CC_SFRX);
+
 	while (1) {
 
+		volatile unsigned char num_bytes = CC1101_read_status_register(CC_NUM_RXBYTES);
 
-		CC1101_strobe(CC_SRX);
-
-		status = CC1101_read_status_register(CC_MARCSTATE);
-		while(CC1101_read_status_register(CC_MARCSTATE) == 0x08);
-		status2 = CC1101_read_status_register(CC_MARCSTATE);
+		CC1101_strobe(CC_SFRX);
+		status = CC1101_strobe(CC_SRX);
 
  		while (!(P1IN & GDO2));
 
-		int temp = 0;
-		cc1101_rcv_packet(rx, &temp);
-		rx_size = temp;
+		cc1101_rcv_packet(rx, &rx_size);
 		led_flash();
-
-		//status = CC1101_read_status_register(CC_MARCSTATE);
-
 
 
 	}
