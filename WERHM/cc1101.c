@@ -132,7 +132,7 @@ void cc1101_config(unsigned char device_address, unsigned char channel_number) {
 	CC1101_reg_write(CC_TEST2, 0x88); // Various test settings.
 	CC1101_reg_write(CC_TEST1, 0x31); // Various test settings.
 	CC1101_reg_write(CC_TEST0, 0x0B); // Various test settings.
-	CC1101_reg_write(CC_FIFOTHR, 0x03); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
+	CC1101_reg_write(CC_FIFOTHR, 0x00); // RX/TX FIFO capacity trigger		// 0x00 == 4 bytes
 
 	//TODO Device checking
 	//CC1101_strobe(CC_SFRX);

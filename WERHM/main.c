@@ -20,6 +20,7 @@ void main() {
 
 	int i;
 
+	int temp = 0;
 	volatile int rx_size = 0;
 	volatile unsigned char status = 0;
 
@@ -31,14 +32,17 @@ void main() {
 
 	while (1) {
 
-		volatile unsigned char num_bytes = CC1101_read_status_register(CC_NUM_RXBYTES);
+		//volatile unsigned char num_bytes = CC1101_read_status_register(CC_NUM_RXBYTES);
 
 		CC1101_strobe(CC_SFRX);
 		status = CC1101_strobe(CC_SRX);
+		_delay_cycles(10000);
+		status = CC1101_strobe(CC_SNOP);
 
  		while (!(P1IN & GDO2));
 
-		cc1101_rcv_packet(rx, &rx_size);
+		cc1101_rcv_packet(rx, &temp);
+		rx_size = temp;
 		led_flash();
 
 
